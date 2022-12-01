@@ -1,5 +1,6 @@
-import './style.scss';
-import { test } from './another-file';
+import './styles/index.scss';
+import { init as canvasInit } from './canvas';
 
-console.log('hi');
-test();
+console.log('Hello, world!');
+
+canvasInit(document.getElementById('canvas') as HTMLCanvasElement);
