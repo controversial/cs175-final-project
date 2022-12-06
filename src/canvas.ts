@@ -8,16 +8,21 @@ export function init(canvas: HTMLCanvasElement) {
   const resizeObserver = new ResizeObserver(updateCanvasSize);
   resizeObserver.observe(canvas);
 
-  // Get canvas drawing context
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  // Get OpenGL context
+  const gl = canvas.getContext('webgl2');
+  if (!gl) return;
+
+  // Initialize viewport to canvas size
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+  // Set clear color to a nice shade of green
+  gl.clearColor(0.2, 0.8, 0.4, 1.0);
 
   // Set up render loop
   let frame: number;
   const draw = () => {
-    // Draw a colorful rectangle
-    ctx.fillStyle = `hsl(${(Date.now() / 10) % 360}, 100%, 50%)`;
-    ctx.fillRect(100, 100, 100, 100);
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     // Schedule next frame
     frame = requestAnimationFrame(draw);
