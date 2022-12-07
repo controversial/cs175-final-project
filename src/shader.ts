@@ -1,49 +1,54 @@
+function loadShaderSource(filepath: string) {
+  const req = new XMLHttpRequest();
+  req.open('GET', filepath, false);
+  req.send(null);
+  return (req.status == 200) ? req.responseText : null;
+}
 
-function loadShaderSource(filepath) {
-    var req = new XMLHttpRequest();
-    req.open('GET', filepath, false);
-    req.send(null);
-    return (req.status == 200) ? req.responseText : null;
-};
+function makeShader(
+  gl: WebGL2RenderingContext,
+  type: typeof gl.VERTEX_SHADER | typeof gl.FRAGMENT_SHADER,
+  filepath: string,
+) {
+  const source = loadShaderSource(filepath);
+  if (!source) throw new Error('Failed to load shader source');
+  const shader = gl.createShader(type);
+  if (!shader) throw new Error('Failed to create shader');
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
 
-function makeShader(gl, type, filepath) {
+  const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+  if (success) return shader;
 
-    const source = loadShaderSource(filepath);
-
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (success) {
-        return shader;
-    }
-
-    console.log(gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-};
-
-
-export function makeProgram(gl, vertex_shader_filepath, fragment_shader_filepath) {
-    const program = gl.createProgram();
-
-    const vertex_shader = makeShader(gl, gl.VERTEX_SHADER, vertex_shader_filepath);
-    const fragment_shader = makeShader(gl, gl.FRAGMENT_SHADER, fragment_shader_filepath);
-
-    gl.attachShader(program, vertex_shader);
-    gl.attachShader(program, fragment_shader);
-    gl.linkProgram(program);
-
-    gl.deleteShader(vertex_shader);
-    gl.deleteShader(fragment_shader);
-
-    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (success) {
-        return program;
-    }
-
-    console.log(gl.getProgramInfoLog(program));
-    gl.deleteProgram(program);
-};
+  console.error(gl.getShaderInfoLog(shader));
+  gl.deleteShader(shader);
+  return null;
+}
 
 
+export function makeProgram(
+  gl: WebGL2RenderingContext,
+  vertexShaderFilepath: string,
+  fragmentShaderFilepath: string,
+) {
+  const program = gl.createProgram();
+  if (!program) throw new Error('Failed to create programs');
+
+  const vertexShader = makeShader(gl, gl.VERTEX_SHADER, vertexShaderFilepath);
+  const fragmentShader = makeShader(gl, gl.FRAGMENT_SHADER, fragmentShaderFilepath);
+  if (!vertexShader || !fragmentShader) throw new Error('Failed to create shaders');
+
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  gl.deleteShader(vertexShader);
+  gl.deleteShader(fragmentShader);
+
+  const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+  if (success) return program;
+
+  console.error(gl.getProgramInfoLog(program));
+  gl.deleteProgram(program);
+  return null;
+}

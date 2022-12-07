@@ -2,12 +2,12 @@
 import { makeProgram as makeShader } from './shader';
 
 const vertices = [
-    -1.0, -1.0, 0.0, 1.0,
-     1.0, -1.0, 0.0, 1.0,
-     1.0,  1.0, 0.0, 1.0,
-    -1.0, -1.0, 0.0, 1.0,
-     1.0,  1.0, 0.0, 1.0,
-    -1.0,  1.0, 0.0, 1.0
+  -1.0, -1.0, 0.0, 1.0,
+  1.0, -1.0, 0.0, 1.0,
+  1.0, 1.0, 0.0, 1.0,
+  -1.0, -1.0, 0.0, 1.0,
+  1.0, 1.0, 0.0, 1.0,
+  -1.0, 1.0, 0.0, 1.0,
 ];
 
 export function init(canvas: HTMLCanvasElement) {
@@ -40,16 +40,15 @@ export function init(canvas: HTMLCanvasElement) {
   gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
 
   // Draws a pink rectangle
-  const passthrough_shader = makeShader(gl, 'src/vert_shader.c', 'src/frag_shader.c');
+  const passthroughShader = makeShader(gl, 'src/vert_shader.c', 'src/frag_shader.c');
 
   // Set up render loop
   let frame: number;
   const draw = () => {
-
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.bindVertexArray(vao);
-    gl.useProgram(passthrough_shader);
+    gl.useProgram(passthroughShader);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
     // Schedule next frame
