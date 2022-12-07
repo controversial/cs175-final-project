@@ -2,18 +2,11 @@
 
 precision highp float;
 
-uniform vec2 resolution;
-uniform float frame;
+uniform float resolution;
+uniform float z;
+uniform float num_points;
 
 out vec4 frag_color;
-
-const float num_tiles = 10.0;
-
-/*
-vec2 random (vec2 uv) {
-    return fract(sin(vec2(dot(uv, vec2(127.1, 311.7)), dot(uv, vec2(269.5, 183.3)))) * 43758.5453);
-}
-*/
 
 vec3 random3(vec3 p) {
     return fract(sin(vec3(
@@ -35,7 +28,7 @@ float worleyNoise(vec3 uvw) {
 
                 // Relative grid location of neighboring cell
                 vec3 neighbor_offset = vec3(float(x), float(y), float(z));
-                vec3 neighbor = mod(uvw_i + neighbor_offset, num_tiles);
+                vec3 neighbor = mod(uvw_i + neighbor_offset, num_points);
 
                 // Distance to point in neighboring cell
                 vec3 point = neighbor_offset + random3(neighbor);
@@ -57,7 +50,7 @@ float worleyFbm(vec3 uvw, float base_frequency) {
 
 void main() {
 
-    vec3 uvw = vec3(gl_FragCoord.xy / resolution, frame / 10000.0) * num_tiles;
+    vec3 uvw = vec3(gl_FragCoord.xy, z) * num_points / resolution;
 
     float noise = worleyFbm(uvw, 1.0);
 
