@@ -1,5 +1,6 @@
-
 import { makeProgram as makeShader } from './shader';
+import vertexShaderSrc from './vert_shader.glsl';
+import fragmentShaderSrc from './frag_shader.glsl';
 
 const vertices = [
   -1.0, -1.0, 0.0, 1.0,
@@ -40,7 +41,7 @@ export function init(canvas: HTMLCanvasElement) {
   gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
 
   // Draws a pink rectangle
-  const passthroughShader = makeShader(gl, 'src/vert_shader.c', 'src/frag_shader.c');
+  const passthroughShader = makeShader(gl, vertexShaderSrc, fragmentShaderSrc);
 
   // Set up render loop
   let frame: number;

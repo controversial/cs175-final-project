@@ -1,17 +1,8 @@
-function loadShaderSource(filepath: string) {
-  const req = new XMLHttpRequest();
-  req.open('GET', filepath, false);
-  req.send(null);
-  return (req.status == 200) ? req.responseText : null;
-}
-
 function makeShader(
   gl: WebGL2RenderingContext,
   type: typeof gl.VERTEX_SHADER | typeof gl.FRAGMENT_SHADER,
-  filepath: string,
+  source: string,
 ) {
-  const source = loadShaderSource(filepath);
-  if (!source) throw new Error('Failed to load shader source');
   const shader = gl.createShader(type);
   if (!shader) throw new Error('Failed to create shader');
   gl.shaderSource(shader, source);
@@ -28,14 +19,14 @@ function makeShader(
 
 export function makeProgram(
   gl: WebGL2RenderingContext,
-  vertexShaderFilepath: string,
-  fragmentShaderFilepath: string,
+  vertexShaderSource: string,
+  fragmentShaderSource: string,
 ) {
   const program = gl.createProgram();
   if (!program) throw new Error('Failed to create programs');
 
-  const vertexShader = makeShader(gl, gl.VERTEX_SHADER, vertexShaderFilepath);
-  const fragmentShader = makeShader(gl, gl.FRAGMENT_SHADER, fragmentShaderFilepath);
+  const vertexShader = makeShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+  const fragmentShader = makeShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
   if (!vertexShader || !fragmentShader) throw new Error('Failed to create shaders');
 
   gl.attachShader(program, vertexShader);
