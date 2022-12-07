@@ -40,8 +40,11 @@ export function init(canvas: HTMLCanvasElement) {
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
 
-  // Draws a pink rectangle
-  const passthroughShader = makeShader(gl, vertexShaderSrc, fragmentShaderSrc);
+  // Draw worley noise
+  const worleyShader = makeShader(gl, vertexShaderSrc, fragmentShaderSrc);
+  if (worleyShader == null) return;
+  const frameLoc = gl.getUniformLocation(worleyShader, 'frame');
+  const resolutionLoc = gl.getUniformLocation(worleyShader, 'resolution');
 
   // Set up render loop
   let frame: number;
@@ -49,7 +52,9 @@ export function init(canvas: HTMLCanvasElement) {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.bindVertexArray(vao);
-    gl.useProgram(passthroughShader);
+    gl.useProgram(worleyShader);
+    gl.uniform1f(frameLoc, frame);
+    gl.uniform2f(resolutionLoc, gl.canvas.width, gl.canvas.height);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
     // Schedule next frame
