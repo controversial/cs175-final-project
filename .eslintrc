@@ -21,6 +21,7 @@
     "object-curly-spacing": ["error", "always"],
     "function-paren-newline": ["error", "multiline-arguments"],
     "padded-blocks": ["error", "never", { "allowSingleLineBlocks": true }],
-    "no-shadow": "error"
+    "no-shadow": "error",
+    "no-trailing-spaces": "error"
   }
 }

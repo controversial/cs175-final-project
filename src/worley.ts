@@ -23,7 +23,7 @@ export function makeWorleyTexture(
     gl.UNSIGNED_BYTE,
     null
   );
-    
+
   // TODO: Are these the best parameters for this situation?
   gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);

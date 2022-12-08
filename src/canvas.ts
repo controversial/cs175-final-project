@@ -13,7 +13,7 @@ export function init(canvas: HTMLCanvasElement) {
   };
   const resizeObserver = new ResizeObserver(updateCanvasSize);
   resizeObserver.observe(canvas);
-  
+
   // Get OpenGL context
   const gl = canvas.getContext('webgl2');
   if (!gl) return;
@@ -47,7 +47,7 @@ export function init(canvas: HTMLCanvasElement) {
   const worleyNumPoints = 4;
   const worleyRepeatTex = 1;
   const worleyTex = makeWorleyTexture(gl, worleyNumPoints, worleySize);
-    
+
   // Initialize shader
   const shader = makeProgram(gl, vertexShaderSrc, fragmentShaderSrc);
   if (shader == null) return;
