@@ -8,11 +8,14 @@ uniform float num_points;
 
 out vec4 frag_color;
 
-vec3 random3(vec3 p) {
-    return fract(sin(vec3(
-            dot(p, vec3(127.1, 311.7, 103.3)),
-            dot(p, vec3(269.5, 183.3, 224.7)),
-            dot(p, vec3(214.3, 129.4, 183.9)))) * 43758.5453);
+// Dave_Hoskins - https://www.shadertoy.com/view/XdGfRR
+#define UI3 uvec3(1597334673U, 3812015801U, 2798796415U)
+#define UIF (1.0 / float(0xffffffffU))
+vec3 hash33(vec3 p)
+{
+	uvec3 q = uvec3(ivec3(p)) * UI3;
+	q = (q.x ^ q.y ^ q.z) * UI3;
+	return vec3(q) * UIF;
 }
 
 float worleyNoise(vec3 uvw) {
@@ -31,7 +34,7 @@ float worleyNoise(vec3 uvw) {
                 vec3 neighbor = mod(uvw_i + neighbor_offset, num_points);
 
                 // Distance to point in neighboring cell
-                vec3 point = neighbor_offset + random3(neighbor);
+                vec3 point = neighbor_offset + hash33(neighbor);
                 float dist = length(point - uvw_f);
 
                 minimum_distance = min(minimum_distance, dist);
@@ -42,18 +45,18 @@ float worleyNoise(vec3 uvw) {
     return minimum_distance;
 }
 
-float worleyFbm(vec3 uvw, float base_frequency) {
+float worleyFbm(vec3 uvw, float base_frequency)
+{
     return worleyNoise(uvw * base_frequency      ) * 0.625 +
            worleyNoise(uvw * base_frequency * 2.0) * 0.25  +
            worleyNoise(uvw * base_frequency * 4.0) * 0.125;
 }
 
-void main() {
-
+void main()
+{
     vec3 uvw = vec3(gl_FragCoord.xy, z) * num_points / resolution;
 
     float noise = worleyFbm(uvw, 1.0);
 
     frag_color = vec4(vec3(1.0 - noise), 1.0);
 }
-
