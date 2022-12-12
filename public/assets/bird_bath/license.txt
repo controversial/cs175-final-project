@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bird Bath
+* source:	https://sketchfab.com/3d-models/bird-bath-da9098a83bec4768bf19b899577c9374
+* author:	Arthur Nicaise (https://sketchfab.com/iCreeplaCrepe)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bird Bath" (https://sketchfab.com/3d-models/bird-bath-da9098a83bec4768bf19b899577c9374) by Arthur Nicaise (https://sketchfab.com/iCreeplaCrepe) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
