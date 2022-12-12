@@ -9,5 +9,4 @@ out vec4 outColor;
 
 void main() {
   outColor = vec4(v_normal * .5 + .5, 1);
-  // outColor = vec4(v_texcoord, 1, 1);
 }
