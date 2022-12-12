@@ -43,3 +43,14 @@ export function makeProgram(
   gl.deleteProgram(program);
   return null;
 }
+
+export function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
+  const width  = canvas.clientWidth | 0;
+  const height = canvas.clientHeight | 0;
+  if (canvas.width !== width ||  canvas.height !== height) {
+    canvas.width  = width;
+    canvas.height = height;
+    return true;
+  }
+  return false;
+}
