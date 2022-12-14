@@ -1,14 +1,17 @@
+import './styles/index.scss';
+
 import { gl, canvas } from './context';
-import { resizeCanvasToDisplaySize } from './shader';
+import { manageCanvasSize } from './shader';
 import * as camera from './camera';
 import { renderRoom } from './scenes/room';
 import { renderBirdbath } from './scenes/birdbath';
 import { renderSkyQuad } from './scenes/screenquad';
 
-resizeCanvasToDisplaySize(canvas);
+manageCanvasSize(canvas);
 camera.attachCameraKeyControls();
 
 renderBirdbath(0, camera.viewMatrix, camera.projectionMatrix);
+
 
 function drawScene(time: number) {
   gl.viewport(0, 0, canvas.width, canvas.height);

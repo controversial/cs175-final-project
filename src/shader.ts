@@ -44,13 +44,15 @@ export function makeProgram(
   return null;
 }
 
-export function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
-  const width  = canvas.clientWidth | 0;
-  const height = canvas.clientHeight | 0;
-  if (canvas.width !== width ||  canvas.height !== height) {
-    canvas.width  = width;
-    canvas.height = height;
-    return true;
-  }
-  return false;
+export function manageCanvasSize(canvas: HTMLCanvasElement) {
+  // Keep the logical size of the canvas in sync with its physical size
+  const updateCanvasSize = () => {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * (window.devicePixelRatio ?? 1);
+    canvas.height = rect.height * (window.devicePixelRatio ?? 1);
+  };
+  const resizeObserver = new ResizeObserver(updateCanvasSize);
+  resizeObserver.observe(canvas);
+
+  return () => resizeObserver.disconnect();
 }

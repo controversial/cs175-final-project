@@ -1,18 +1,11 @@
-import { makeProgram as makeProgram } from './shader';
+import { makeProgram as makeProgram, manageCanvasSize } from './shader';
 import { makeWorleyTexture as makeWorleyTexture } from './worley';
 import vertexShaderSrc from './vert_passthrough.glsl';
 import fragmentShaderSrc from './frag_quad.glsl';
 
 
 export function init(canvas: HTMLCanvasElement) {
-  // Keep the logical size of the canvas in sync with its physical size
-  const updateCanvasSize = () => {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * (window.devicePixelRatio ?? 1);
-    canvas.height = rect.height * (window.devicePixelRatio ?? 1);
-  };
-  const resizeObserver = new ResizeObserver(updateCanvasSize);
-  resizeObserver.observe(canvas);
+  const cleanupResizer = manageCanvasSize(canvas);
 
   // Get OpenGL context
   const gl = canvas.getContext('webgl2');
@@ -78,7 +71,7 @@ export function init(canvas: HTMLCanvasElement) {
   if (import.meta.hot) {
     import.meta.hot.dispose(() => {
       cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
+      cleanupResizer();
     });
   }
 }
