@@ -1,6 +1,6 @@
 import { gl } from '../context';
 import screenQuadVSS from '../shaders/screenquad_vert.glsl';
-import skyFragFSS from '../shaders/atmosphere_frag.glsl';
+import skyFragFSS from '../shaders/atmosphere/atmosphere_frag.glsl';
 import { makeProgram } from '../shader';
 import { vec3 } from 'gl-matrix';
 
