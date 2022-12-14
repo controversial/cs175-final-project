@@ -72,24 +72,24 @@ export function updateRotation() {
 export function attachCameraKeyControls() {
   addEventListener('keydown', (e) => {
     switch (e.key) {
-    case 'w': velocity[2] =  moveSpeed; break;
-    case 'a': velocity[0] =  moveSpeed; break;
-    case 's': velocity[2] = -moveSpeed; break;
-    case 'd': velocity[0] = -moveSpeed; break;
-    case 'q': velocity[1] = -moveSpeed; break;
-    case 'e': velocity[1] =  moveSpeed; break;
+      case 'w': velocity[2] =  moveSpeed; break;
+      case 'a': velocity[0] =  moveSpeed; break;
+      case 's': velocity[2] = -moveSpeed; break;
+      case 'd': velocity[0] = -moveSpeed; break;
+      case 'q': velocity[1] = -moveSpeed; break;
+      case 'e': velocity[1] =  moveSpeed; break;
 
-    case 'W': velocity[2] =  moveSpeed * 2.0; break;
-    case 'A': velocity[0] =  moveSpeed * 2.0; break;
-    case 'S': velocity[2] = -moveSpeed * 2.0; break;
-    case 'D': velocity[0] = -moveSpeed * 2.0; break;
-    case 'Q': velocity[1] = -moveSpeed * 2.0; break;
-    case 'E': velocity[1] =  moveSpeed * 2.0; break;
+      case 'W': velocity[2] =  moveSpeed * 2.0; break;
+      case 'A': velocity[0] =  moveSpeed * 2.0; break;
+      case 'S': velocity[2] = -moveSpeed * 2.0; break;
+      case 'D': velocity[0] = -moveSpeed * 2.0; break;
+      case 'Q': velocity[1] = -moveSpeed * 2.0; break;
+      case 'E': velocity[1] =  moveSpeed * 2.0; break;
 
-    case 'i': deltaAngle[0] =  rotateSpeed; break;
-    case 'j': deltaAngle[1] =  rotateSpeed; break;
-    case 'k': deltaAngle[0] = -rotateSpeed; break;
-    case 'l': deltaAngle[1] = -rotateSpeed; break;
+      case 'i': deltaAngle[0] =  rotateSpeed; break;
+      case 'j': deltaAngle[1] =  rotateSpeed; break;
+      case 'k': deltaAngle[0] = -rotateSpeed; break;
+      case 'l': deltaAngle[1] = -rotateSpeed; break;
     }
 
     console.log(lookVector);
@@ -97,17 +97,17 @@ export function attachCameraKeyControls() {
 
   addEventListener('keyup', (e) => {
     switch (e.key) {
-    case 'w': case 'W': velocity[2] = 0; break;
-    case 'a': case 'A': velocity[0] = 0; break;
-    case 's': case 'S': velocity[2] = 0; break;
-    case 'd': case 'D': velocity[0] = 0; break;
-    case 'q': case 'Q': velocity[1] = 0; break;
-    case 'e': case 'E': velocity[1] = 0; break;
+      case 'w': case 'W': velocity[2] = 0; break;
+      case 'a': case 'A': velocity[0] = 0; break;
+      case 's': case 'S': velocity[2] = 0; break;
+      case 'd': case 'D': velocity[0] = 0; break;
+      case 'q': case 'Q': velocity[1] = 0; break;
+      case 'e': case 'E': velocity[1] = 0; break;
 
-    case 'i': deltaAngle[0] = 0; break;
-    case 'j': deltaAngle[1] = 0; break;
-    case 'k': deltaAngle[0] = 0; break;
-    case 'l': deltaAngle[1] = 0; break;
+      case 'i': deltaAngle[0] = 0; break;
+      case 'j': deltaAngle[1] = 0; break;
+      case 'k': deltaAngle[0] = 0; break;
+      case 'l': deltaAngle[1] = 0; break;
     }
   });
 }

@@ -15,8 +15,7 @@ const vao = gl.createVertexArray();
 // mash instance data into a single buffer
 // color (vec3) -> model matrix (mat4)
 function buildInstances(colors: vec3[], matrices: mat4[]) {
-  if (colors.length != matrices.length)
-    throw new Error('colors.length != matrices.length');
+  if (colors.length != matrices.length) throw new Error('colors.length != matrices.length');
 
   const count = colors.length;
   const INSTANCE_STRIDE = 19;

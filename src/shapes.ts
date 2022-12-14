@@ -85,8 +85,7 @@ const invertedCubeVertices = new Float32Array([
 ]);
 
 function concatBuffers(vertexBuffers: Float32Array[], indexBuffers: Uint16Array[]) {
-  if (vertexBuffers.length != indexBuffers.length)
-    throw Error('vertexBuffers.length != indexBuffers.length');
+  if (vertexBuffers.length != indexBuffers.length) throw Error('vertexBuffers.length != indexBuffers.length');
 
   const totalVertexBufferSize = vertexBuffers.reduce((c, x) => {return c + x.length;}, 0);
   const totalIndexBufferSize = indexBuffers.reduce((c, x) => {return c + x.length;}, 0);

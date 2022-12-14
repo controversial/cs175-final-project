@@ -22,8 +22,7 @@ function drawScene(time: number) {
   camera.orient();
 
   renderRoom(time, camera.viewMatrix, camera.projectionMatrix);
-  if (time == -1)
-    renderSkyQuad(time, camera.lookVector);
+  if (time == -1) renderSkyQuad(time, camera.lookVector);
 
   requestAnimationFrame(drawScene);
 }
