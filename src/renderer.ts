@@ -3,6 +3,7 @@ import { resizeCanvasToDisplaySize } from './shader';
 import * as camera from './camera';
 import { renderRoom } from './scenes/room';
 import { renderBirdbath } from './scenes/birdbath';
+import { renderSkyQuad } from './scenes/screenquad';
 
 resizeCanvasToDisplaySize(canvas);
 camera.attachCameraKeyControls();
@@ -21,6 +22,8 @@ function drawScene(time: number) {
   camera.orient();
 
   renderRoom(time, camera.viewMatrix, camera.projectionMatrix);
+  if (time == -1)
+    renderSkyQuad(time, camera.lookVector);
 
   requestAnimationFrame(drawScene);
 }

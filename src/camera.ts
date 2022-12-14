@@ -64,33 +64,35 @@ export function updatePosition() {
 export function updateRotation() {
   vec2.add(angles, angles, deltaAngle);
   quat.fromEuler(rotationQuat, angles[0], angles[1], 0);
-  vec3.transformQuat(lookVector, [0, 0, 1], rotationQuat);
-  vec3.transformQuat(rightVector, [1, 0, 0], rotationQuat);
+  vec3.transformQuat(lookVector, [0, 0, -1], rotationQuat);
+  vec3.transformQuat(rightVector, [-1, 0, 0], rotationQuat);
   vec3.set(upVector, 0, 1, 0);
 }
 
 export function attachCameraKeyControls() {
   addEventListener('keydown', (e) => {
     switch (e.key) {
-    case 'w': velocity[2] = -moveSpeed; break;
-    case 'a': velocity[0] = -moveSpeed; break;
-    case 's': velocity[2] =  moveSpeed; break;
-    case 'd': velocity[0] =  moveSpeed; break;
+    case 'w': velocity[2] =  moveSpeed; break;
+    case 'a': velocity[0] =  moveSpeed; break;
+    case 's': velocity[2] = -moveSpeed; break;
+    case 'd': velocity[0] = -moveSpeed; break;
     case 'q': velocity[1] = -moveSpeed; break;
     case 'e': velocity[1] =  moveSpeed; break;
+
+    case 'W': velocity[2] =  moveSpeed * 2.0; break;
+    case 'A': velocity[0] =  moveSpeed * 2.0; break;
+    case 'S': velocity[2] = -moveSpeed * 2.0; break;
+    case 'D': velocity[0] = -moveSpeed * 2.0; break;
+    case 'Q': velocity[1] = -moveSpeed * 2.0; break;
+    case 'E': velocity[1] =  moveSpeed * 2.0; break;
 
     case 'i': deltaAngle[0] =  rotateSpeed; break;
     case 'j': deltaAngle[1] =  rotateSpeed; break;
     case 'k': deltaAngle[0] = -rotateSpeed; break;
     case 'l': deltaAngle[1] = -rotateSpeed; break;
-
-    case 'W': velocity[2] = -moveSpeed * 2.0; break;
-    case 'A': velocity[0] = -moveSpeed * 2.0; break;
-    case 'S': velocity[2] =  moveSpeed * 2.0; break;
-    case 'D': velocity[0] =  moveSpeed * 2.0; break;
-    case 'Q': velocity[1] = -moveSpeed * 2.0; break;
-    case 'E': velocity[1] =  moveSpeed * 2.0; break;
     }
+
+    console.log(lookVector);
   });
 
   addEventListener('keyup', (e) => {
