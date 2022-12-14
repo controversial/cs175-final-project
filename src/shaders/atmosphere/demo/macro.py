@@ -1,3 +1,5 @@
+# quick script to expand #define macros
+
 import sys
 import re
 

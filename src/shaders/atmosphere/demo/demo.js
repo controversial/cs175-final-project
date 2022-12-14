@@ -168,7 +168,7 @@ in the <code>Utils</code> class below):
     Utils.loadShaderSource('vertex_shader.glsl', (source) => {
       this.vertexShaderSource = source;
     });
-    Utils.loadShaderSource('fragment.glsl', (source) => {
+    Utils.loadShaderSource('fragment_texture.glsl', (source) => {
       this.fragmentShaderSource = source;
     });
   }
@@ -242,16 +242,10 @@ a full screen quad with it:
       0, 0, 0, 1]);
 
     const program = this.program;
+    const vertexLoc = gl.getAttribLocation(program, 'vertex');
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    gl.vertexAttribPointer(
-      gl.getAttribLocation(program, 'vertex'),
-      /*numComponents=*/ 2,
-      /*type=*/ this.gl.FLOAT,
-      /*normalize=*/ false,
-      /*stride=*/ 0,
-      /*offset=*/ 0
-    );
+    gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(gl.getAttribLocation(program, 'vertex'));
     gl.uniformMatrix4fv(
       gl.getUniformLocation(program, 'view_from_clip'),
@@ -265,9 +259,6 @@ a full screen quad with it:
     );
     gl.uniform1i(gl.getUniformLocation(program, 'transmittance_texture'), 0);
     gl.uniform1i(gl.getUniformLocation(program, 'scattering_texture'), 1);
-    // Unused texture sampler, but bind a 3D texture to it anyway, just in case.
-    gl.uniform1i(gl.getUniformLocation(program, 'single_mie_scattering_texture'), 1);
-    gl.uniform1i(gl.getUniformLocation(program, 'irradiance_texture'), 2);
     gl.uniform3f(
       gl.getUniformLocation(program, 'camera'),
       this.modelFromView[3],
@@ -284,10 +275,8 @@ a full screen quad with it:
     );
     gl.uniform3f(
       gl.getUniformLocation(program, 'sun_direction'),
-      Math.cos(this.sunAzimuthAngleRadians) *
-            Math.sin(this.sunZenithAngleRadians),
-      Math.sin(this.sunAzimuthAngleRadians) *
-            Math.sin(this.sunZenithAngleRadians),
+      Math.cos(this.sunAzimuthAngleRadians) * Math.sin(this.sunZenithAngleRadians),
+      Math.sin(this.sunAzimuthAngleRadians) * Math.sin(this.sunZenithAngleRadians),
       Math.cos(this.sunZenithAngleRadians)
     );
     gl.uniform2f(
@@ -309,9 +298,9 @@ directly adapted from the C++ code:
     if (key == 'h') {
       const hidden = this.help.style.display == 'none';
       this.help.style.display = hidden ? 'block' : 'none';
-    } else if (key == '+') {
+    } else if (key == 'l') {
       this.exposure *= 1.1;
-    } else if (key == '-') {
+    } else if (key == 'j') {
       this.exposure /= 1.1;
     } else if (key == '1') {
       this.setView(9000, 1.47, 0, 1.3, 3, 10);
@@ -353,7 +342,7 @@ directly adapted from the C++ code:
   onMouseDown(event) {
     this.previousMouseX = event.offsetX;
     this.previousMouseY = event.offsetY;
-    this.drag = event.ctrlKey ? 'sun' : 'camera';
+    this.drag = event.shiftKey ? 'sun' : 'camera';
   }
 
   onMouseMove(event) {
@@ -403,6 +392,7 @@ class Utils {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
+    console.log(gl.getShaderInfoLog(shader));
     return shader;
   }
 
