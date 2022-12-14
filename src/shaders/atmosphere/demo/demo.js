@@ -57,6 +57,7 @@ const kLengthUnitInMeters = 1000;
 initializes the WebGL canvas, declares the fields of the class, sets up the
 event handlers and starts the resource loading and the render loop:
 */
+const PATH = '/src/shaders/atmosphere/demo/';
 
 class Demo {
   constructor(rootElement) {
@@ -115,7 +116,7 @@ in the <code>Utils</code> class below):
       gl.STATIC_DRAW
     );
 
-    Utils.loadTextureData('transmittance.dat', (data) => {
+    Utils.loadTextureData(PATH + 'transmittance.dat', (data) => {
       this.transmittanceTexture =
           Utils.createTexture(gl, gl.TEXTURE0, gl.TEXTURE_2D);
       gl.texImage2D(
@@ -131,7 +132,7 @@ in the <code>Utils</code> class below):
       );
     });
 
-    Utils.loadTextureData('scattering.dat', (data) => {
+    Utils.loadTextureData(PATH + 'scattering.dat', (data) => {
       this.scatteringTexture =
           Utils.createTexture(gl, gl.TEXTURE1, gl.TEXTURE_3D);
       gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
@@ -149,7 +150,7 @@ in the <code>Utils</code> class below):
       );
     });
 
-    Utils.loadTextureData('irradiance.dat', (data) => {
+    Utils.loadTextureData(PATH + 'irradiance.dat', (data) => {
       this.irradianceTexture =
           Utils.createTexture(gl, gl.TEXTURE2, gl.TEXTURE_2D);
       gl.texImage2D(
@@ -165,10 +166,10 @@ in the <code>Utils</code> class below):
       );
     });
 
-    Utils.loadShaderSource('vertex_shader.glsl', (source) => {
+    Utils.loadShaderSource(PATH + 'vertex_shader.glsl', (source) => {
       this.vertexShaderSource = source;
     });
-    Utils.loadShaderSource('fragment_texture.glsl', (source) => {
+    Utils.loadShaderSource(PATH + 'fragment_texture.glsl', (source) => {
       this.fragmentShaderSource = source;
     });
   }
