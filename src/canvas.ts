@@ -8,8 +8,8 @@ export function init(canvas: HTMLCanvasElement) {
   // Keep the logical size of the canvas in sync with its physical size
   const updateCanvasSize = () => {
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    canvas.width = rect.width * (window.devicePixelRatio ?? 1);
+    canvas.height = rect.height * (window.devicePixelRatio ?? 1);
   };
   const resizeObserver = new ResizeObserver(updateCanvasSize);
   resizeObserver.observe(canvas);
