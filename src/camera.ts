@@ -1,8 +1,9 @@
 import { vec3, mat4, quat, vec2 } from 'gl-matrix';
 import { canvas } from './context';
+import { lerp } from './math-utils';
 
-const moveSpeed = 0.01;
-const rotateSpeed = 1;
+const moveSpeed = 0.05;
+const rotateSpeed = 0.5;
 
 const angles = vec2.create();
 const deltaAngle = vec2.create();
@@ -22,9 +23,7 @@ const invEyePos = vec3.create();
 const invRotation = mat4.create();
 
 updateAspect(canvas.width, canvas.height);
-updatePosition();
-updateRotation();
-orient();
+orient(0);
 
 export function updateAspect(width: number, height: number) {
   const aspect = width / height;
@@ -45,9 +44,9 @@ export function orient() {
 }
 */
 
-export function orient() {
-  updatePosition();
-  updateRotation();
+export function orient(timeDelta: number) {
+  updatePosition(timeDelta);
+  updateRotation(timeDelta);
   vec3.negate(invEyePos, eyePosition);
   mat4.fromTranslation(viewMatrix, invEyePos);
   quat.invert(rotationQuat, rotationQuat);
@@ -55,14 +54,16 @@ export function orient() {
   mat4.multiply(viewMatrix, invRotation, viewMatrix);
 }
 
-export function updatePosition() {
-  vec3.scaleAndAdd(eyePosition, eyePosition, rightVector, velocity[0]);
-  vec3.scaleAndAdd(eyePosition, eyePosition, upVector, velocity[1]);
-  vec3.scaleAndAdd(eyePosition, eyePosition, lookVector, velocity[2]);
+export function updatePosition(timeDelta: number) {
+  const framesElapsed = timeDelta / (1000 / 60); // number of 60fps frames since last update; used to normalize speed to different refresh rates
+  vec3.scaleAndAdd(eyePosition, eyePosition, rightVector, velocity[0] * framesElapsed);
+  vec3.scaleAndAdd(eyePosition, eyePosition, upVector, velocity[1] * framesElapsed);
+  vec3.scaleAndAdd(eyePosition, eyePosition, lookVector, velocity[2] * framesElapsed);
 }
 
-export function updateRotation() {
-  vec2.add(angles, angles, deltaAngle);
+export function updateRotation(timeDelta: number) {
+  const framesElapsed = timeDelta / (1000 / 60); // number of 60fps frames since last update; used to normalize speed to different refresh rates
+  vec2.add(angles, angles, vec2.multiply(deltaAngle, deltaAngle, [framesElapsed, framesElapsed]));
   quat.fromEuler(rotationQuat, angles[0], angles[1], 0);
   vec3.transformQuat(lookVector, [0, 0, -1], rotationQuat);
   vec3.transformQuat(rightVector, [-1, 0, 0], rotationQuat);
@@ -70,44 +71,62 @@ export function updateRotation() {
 }
 
 export function attachCameraKeyControls() {
-  addEventListener('keydown', (e) => {
-    switch (e.key) {
-      case 'w': velocity[2] =  moveSpeed; break;
-      case 'a': velocity[0] =  moveSpeed; break;
-      case 's': velocity[2] = -moveSpeed; break;
-      case 'd': velocity[0] = -moveSpeed; break;
-      case 'q': velocity[1] = -moveSpeed; break;
-      case 'e': velocity[1] =  moveSpeed; break;
+  const keysDown = new Set<string>();
+  // TODO: restore faster movement with shift
+  const onKeyDown = (e: KeyboardEvent) => { keysDown.add(e.key.toLowerCase()); };
+  const onKeyUp = (e: KeyboardEvent) => { keysDown.delete(e.key.toLowerCase()); };
+  addEventListener('keydown', onKeyDown);
+  addEventListener('keyup', onKeyUp);
+  let leftRightVelocity = 0;
+  let upDownVelocity = 0;
+  let forwardBackVelocity = 0;
+  let leftRightAngularVelocity = 0;
+  let upDownAngularVelocity = 0;
 
-      case 'W': velocity[2] =  moveSpeed * 2.0; break;
-      case 'A': velocity[0] =  moveSpeed * 2.0; break;
-      case 'S': velocity[2] = -moveSpeed * 2.0; break;
-      case 'D': velocity[0] = -moveSpeed * 2.0; break;
-      case 'Q': velocity[1] = -moveSpeed * 2.0; break;
-      case 'E': velocity[1] =  moveSpeed * 2.0; break;
+  let lastTime = performance.now();
+  const update = (time: DOMHighResTimeStamp) => {
+    const timeDelta = time - lastTime;
+    lastTime = time;
+    const framesElapsed = timeDelta / (1000 / 60); // number of 60fps frames since last update; used to normalize “momentum” curve to different refresh rates
+    // Momentum parameters
+    const movementAlpha = 0.1;
+    const effectiveMovementAlpha = 1 - ((1 - movementAlpha) ** framesElapsed);
+    const rotationAlpha = 0.2;
+    const effectiveRotationAlpha = 1 - ((1 - rotationAlpha) ** framesElapsed);
+    // Forward/back movement
+    if (keysDown.has('w')) forwardBackVelocity = lerp(forwardBackVelocity, moveSpeed, effectiveMovementAlpha);
+    else if (keysDown.has('s')) forwardBackVelocity = lerp(forwardBackVelocity, -moveSpeed, effectiveMovementAlpha);
+    else forwardBackVelocity = lerp(forwardBackVelocity, 0, effectiveMovementAlpha);
+    // Left/right movement
+    if (keysDown.has('a')) leftRightVelocity = lerp(leftRightVelocity, moveSpeed, effectiveMovementAlpha);
+    else if (keysDown.has('d')) leftRightVelocity = lerp(leftRightVelocity, -moveSpeed, effectiveMovementAlpha);
+    else leftRightVelocity = lerp(leftRightVelocity, 0, effectiveMovementAlpha);
+    // Up/down movement
+    if (keysDown.has('q')) upDownVelocity = lerp(upDownVelocity, moveSpeed, effectiveMovementAlpha);
+    else if (keysDown.has('e')) upDownVelocity = lerp(upDownVelocity, -moveSpeed, effectiveMovementAlpha);
+    else upDownVelocity = lerp(upDownVelocity, 0, effectiveMovementAlpha);
+    // Rotation
+    if (keysDown.has('i')) upDownAngularVelocity = lerp(upDownAngularVelocity, rotateSpeed, effectiveRotationAlpha);
+    else if (keysDown.has('k')) upDownAngularVelocity = lerp(upDownAngularVelocity, -rotateSpeed, effectiveRotationAlpha);
+    else upDownAngularVelocity = lerp(upDownAngularVelocity, 0, effectiveRotationAlpha);
+    if (keysDown.has('j')) leftRightAngularVelocity = lerp(leftRightAngularVelocity, rotateSpeed, effectiveRotationAlpha);
+    else if (keysDown.has('l')) leftRightAngularVelocity = lerp(leftRightAngularVelocity, -rotateSpeed, effectiveRotationAlpha);
+    else leftRightAngularVelocity = lerp(leftRightAngularVelocity, 0, effectiveRotationAlpha);
+    // Apply velocities
+    velocity[0] = leftRightVelocity;
+    velocity[1] = upDownVelocity;
+    velocity[2] = forwardBackVelocity;
+    deltaAngle[0] = upDownAngularVelocity;
+    deltaAngle[1] = leftRightAngularVelocity;
 
-      case 'i': deltaAngle[0] =  rotateSpeed; break;
-      case 'j': deltaAngle[1] =  rotateSpeed; break;
-      case 'k': deltaAngle[0] = -rotateSpeed; break;
-      case 'l': deltaAngle[1] = -rotateSpeed; break;
-    }
+    requestAnimationFrame(update);
+  };
+  const raf = requestAnimationFrame(update);
 
-    console.log(lookVector);
-  });
-
-  addEventListener('keyup', (e) => {
-    switch (e.key) {
-      case 'w': case 'W': velocity[2] = 0; break;
-      case 'a': case 'A': velocity[0] = 0; break;
-      case 's': case 'S': velocity[2] = 0; break;
-      case 'd': case 'D': velocity[0] = 0; break;
-      case 'q': case 'Q': velocity[1] = 0; break;
-      case 'e': case 'E': velocity[1] = 0; break;
-
-      case 'i': deltaAngle[0] = 0; break;
-      case 'j': deltaAngle[1] = 0; break;
-      case 'k': deltaAngle[0] = 0; break;
-      case 'l': deltaAngle[1] = 0; break;
-    }
-  });
+  // Cleanup function
+  return () => {
+    cancelAnimationFrame(raf);
+    removeEventListener('keydown', onKeyDown);
+    removeEventListener('keyup', onKeyUp);
+  };
 }

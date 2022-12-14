@@ -12,8 +12,11 @@ manageCanvasSize(canvas, (w, h) => camera.updateAspect(w, h));
 
 renderBirdbath(0, camera.viewMatrix, camera.projectionMatrix);
 
+let previousTime = performance.now();
 
 function drawScene(time: number) {
+  const delta = time - previousTime;
+  previousTime = time;
   gl.viewport(0, 0, canvas.width, canvas.height);
 
   gl.enable(gl.DEPTH_TEST);
@@ -22,7 +25,7 @@ function drawScene(time: number) {
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  camera.orient();
+  camera.orient(delta);
 
   renderRoom(time, camera.viewMatrix, camera.projectionMatrix);
   if (time == -1) renderSkyQuad(time, camera.lookVector);
