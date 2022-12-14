@@ -129,6 +129,7 @@ float MiePhaseFunction(float g, float nu) {
 vec4 GetScatteringTextureUvwzFromRMuMuSNu(
         float r, float mu, float mu_s, float nu,
         bool ray_r_mu_intersects_ground) {
+
     float H = sqrt(atmosphere.top_radius * atmosphere.top_radius - atmosphere.bottom_radius * atmosphere.bottom_radius);
     float rho = SafeSqrt(r * r - atmosphere.bottom_radius * atmosphere.bottom_radius);
     float u_r = GetTextureCoordFromUnitRange(rho / H, SCATTERING_TEXTURE_R_SIZE);
