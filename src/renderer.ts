@@ -7,8 +7,8 @@ import { renderRoom } from './scenes/room';
 import { renderBirdbath } from './scenes/birdbath';
 import { renderSkyQuad } from './scenes/screenquad';
 
-manageCanvasSize(canvas);
 camera.attachCameraKeyControls();
+manageCanvasSize(canvas, (w, h) => camera.updateAspect(w, h));
 
 renderBirdbath(0, camera.viewMatrix, camera.projectionMatrix);
 
