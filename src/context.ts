@@ -1,4 +1,4 @@
-const canvas = document.getElementById('WebGLCanvas') as HTMLCanvasElement;
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
 
 if (!gl) {
