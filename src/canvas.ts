@@ -1,5 +1,5 @@
 import { makeProgram as makeProgram, manageCanvasSize } from './shader';
-import { makeWorleyTexture as makeWorleyTexture } from './worley';
+import { makeWorleyTexture as makeWorleyTexture } from './scenes/worley';
 import vertexShaderSrc from './vert_passthrough.glsl';
 import fragmentShaderSrc from './frag_quad.glsl';
 
@@ -19,9 +19,8 @@ export function init(canvas: HTMLCanvasElement) {
 
   // Pre-generate 3D Worley noise texture
   const worleySize = 128;
-  const worleyNumPoints = 4;
   const worleyRepeatTex = 1;
-  const worleyTex = makeWorleyTexture(gl, worleyNumPoints, worleySize);
+  const worleyTex = makeWorleyTexture(worleySize);
 
   // Initialize shader
   const program = makeProgram(gl, vertexShaderSrc, fragmentShaderSrc);

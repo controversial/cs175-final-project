@@ -19,6 +19,9 @@ export const eyePosition = vec3.fromValues(0, 0, 1);
 export const viewMatrix = mat4.create();
 export const projectionMatrix = mat4.create();
 
+export let aspect = 1.0;
+export const fieldOfView = 60 * Math.PI / 180;
+
 const invEyePos = vec3.create();
 const invRotation = mat4.create();
 
@@ -26,8 +29,7 @@ updateAspect(canvas.width, canvas.height);
 orient(0);
 
 export function updateAspect(width: number, height: number) {
-  const aspect = width / height;
-  const fieldOfView = 60 * Math.PI / 180;
+  aspect = width / height;
   const near = 0.001;
   const far = 100;
   mat4.perspective(projectionMatrix, fieldOfView, aspect, near, far);

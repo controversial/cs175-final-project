@@ -6,6 +6,7 @@ import * as camera from './camera';
 import { renderRoom } from './scenes/room';
 import { renderBirdbath } from './scenes/birdbath';
 import { renderSkyQuad } from './scenes/screenquad';
+import { renderClouds } from './scenes/cloud';
 
 camera.attachCameraKeyControls();
 manageCanvasSize(canvas, (w, h) => camera.updateAspect(w, h));
@@ -26,6 +27,8 @@ function drawScene(time: number) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   camera.orient(delta);
+
+  renderClouds(time, canvas.width, canvas.height, camera.aspect, camera.fieldOfView, camera.eyePosition, camera.lookVector);
 
   renderRoom(time, camera.viewMatrix, camera.projectionMatrix);
   if (time == -1) renderSkyQuad(time, camera.lookVector);
