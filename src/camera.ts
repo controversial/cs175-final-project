@@ -1,6 +1,8 @@
 import { vec3, mat4, quat, vec2 } from 'gl-matrix';
-import { lerp } from './math-utils';
 
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
 
 export default class Camera {
   static moveSpeed = 0.05;
