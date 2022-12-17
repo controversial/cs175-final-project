@@ -4,13 +4,15 @@ import { gl, canvas } from './context';
 import { manageCanvasSize } from './shader';
 import * as camera from './camera';
 import { renderRoom } from './scenes/room';
-import { renderBirdbath } from './scenes/birdbath';
+import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { renderSkyQuad } from './scenes/screenquad';
 import { renderClouds } from './scenes/cloud';
 
 camera.attachCameraKeyControls();
 manageCanvasSize(canvas, (w, h) => camera.updateAspect(w, h));
 
+const birdbathData = await loadBirdbath();
+console.log(birdbathData);
 renderBirdbath(0, camera.viewMatrix, camera.projectionMatrix);
 
 let previousTime = performance.now();
