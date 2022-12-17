@@ -1,10 +1,9 @@
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
+const maybeCanvas = document.getElementById('canvas');
+if (!(maybeCanvas instanceof HTMLCanvasElement)) throw new Error('Failed to find canvas element');
 
-if (!gl) {
-  throw new Error('WebGL2 Not supported');
-}
+const maybeGl = maybeCanvas.getContext('webgl2');
+if (!maybeGl) throw new Error('Failed to get WebGL2 context');
 
-gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, gl.DONT_CARE);
-
-export { canvas, gl };
+// Exported types should stay narrowed
+export const canvas = maybeCanvas as NonNullable<typeof maybeCanvas>;
+export const gl = maybeGl as NonNullable<typeof maybeGl>;

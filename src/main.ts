@@ -1,20 +1,16 @@
 import './styles/index.scss';
 
 import Renderer from './renderer';
+import { canvas, gl } from './context';
 
 import { renderRoom } from './scenes/room';
 // import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { renderClouds } from './scenes/cloud';
 
-const canvas = document.getElementById('canvas');
-if (!(canvas instanceof HTMLCanvasElement)) throw new Error('Failed to find canvas element');
-
-
-const renderer = new Renderer(canvas);
+const renderer = new Renderer(canvas, gl);
 renderer.addRenderStep(renderClouds);
 renderer.addRenderStep(renderRoom);
 renderer.start();
-
 
 // Vite cleanup
 if (import.meta.hot) {

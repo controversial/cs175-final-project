@@ -1,5 +1,4 @@
 import { vec3, mat4, quat, vec2 } from 'gl-matrix';
-import { canvas } from './context';
 import { lerp } from './math-utils';
 
 
@@ -30,7 +29,7 @@ export default class Camera {
   nearPlane = 0.001;
   farPlane = 100;
 
-  constructor() {
+  constructor(canvas: HTMLCanvasElement) {
     this.updateAspect(canvas.width, canvas.height);
     this.update(0);
   }

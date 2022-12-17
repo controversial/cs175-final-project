@@ -18,7 +18,7 @@ export default class Renderer {
   canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext;
   resizeObserver: ResizeObserver;
-  camera = new Camera();
+  camera: Camera;
   raf?: ReturnType<typeof requestAnimationFrame>;
   startTime?: DOMHighResTimeStamp;
 
@@ -26,15 +26,14 @@ export default class Renderer {
   beforeFrameSteps: RenderStep[] = [];
   renderSteps: RenderStep[] = [];
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
     this.canvas = canvas;
-    const gl = canvas.getContext('webgl2');
-    if (!gl) throw new Error('Failed to get WebGL2 context');
     this.gl = gl;
+    this.camera = new Camera(this.canvas);
     this.camera.attachKeyControls();
     this.updateCanvasSize();
     this.resizeObserver = new ResizeObserver(() => this.updateCanvasSize());
-    this.resizeObserver.observe(canvas);
+    this.resizeObserver.observe(this.canvas);
   }
 
 

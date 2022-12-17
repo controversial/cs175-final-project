@@ -1,10 +1,9 @@
 import { makeProgram as makeProgram } from '../shader';
-import { gl } from '../context';
 
 import vertexShaderSource from '../shaders/screenquad_vert.glsl';
 import fragmentShaderSource from '../shaders/worley_frag.glsl';
 
-export function makeWorleyTexture(size: number) {
+export function makeWorleyTexture(gl: WebGL2RenderingContext, size: number) {
   // Initialize texture
   const texture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE0);
