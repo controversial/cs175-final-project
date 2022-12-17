@@ -43,17 +43,3 @@ export function makeProgram(
   gl.deleteProgram(program);
   return null;
 }
-
-export function manageCanvasSize(canvas: HTMLCanvasElement, callback?: (arg0: number, arg1: number) => void) {
-  // Keep the logical size of the canvas in sync with its physical size
-  const updateCanvasSize = () => {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * (window.devicePixelRatio ?? 1);
-    canvas.height = rect.height * (window.devicePixelRatio ?? 1);
-    if (callback) callback(canvas.width, canvas.height);
-  };
-  const resizeObserver = new ResizeObserver(updateCanvasSize);
-  resizeObserver.observe(canvas);
-
-  return () => resizeObserver.disconnect();
-}
