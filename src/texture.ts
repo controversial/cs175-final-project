@@ -1,8 +1,6 @@
-import { gl } from './context';
-
 // Modified from:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL
-export function loadTexture(url: string) {
+export function loadTexture(gl: WebGL2RenderingContext, url: string) {
   const texture = gl.createTexture();
 
   // Store single black pixel in texture until image is loaded

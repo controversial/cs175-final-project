@@ -3,7 +3,7 @@ import { mat4, vec3 } from 'gl-matrix';
 import { makeProgram } from '../shader';
 import basicVSS from '../shaders/basic_vert.glsl';
 import basicFSS from '../shaders/basic_frag.glsl';
-import * as shapes from '../shapes';
+import * as shapes from '../room-geom';
 import type { SceneContext } from 'renderer';
 
 const program = makeProgram(gl, basicVSS, basicFSS) as WebGLProgram;
