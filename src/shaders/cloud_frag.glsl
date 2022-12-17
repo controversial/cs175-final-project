@@ -3,47 +3,50 @@
 precision highp float;
 precision highp sampler3D;
 
-uniform float u_time;
-uniform float u_screenWidth;
-uniform float u_screenHeight;
-uniform float u_aspectRatio;
-uniform float u_fieldOfView;
-uniform vec3 u_eyePoint;
-uniform vec3 u_lookVector;
+uniform float time;
+uniform float screen_width;
+uniform float screen_height;
+
+// Camera parameters
+uniform float aspect_ratio;
+uniform float field_of_view;
+uniform vec3 eye_position;
+uniform vec3 look_direction;
+const float near = 0.001; // TODO: near and far should probably be passed in
+const float far = 200.0;
+const float inverse_near = 1.0 / near;
+const float inverse_far = 1.0 / far;
 
 uniform sampler3D cloud_noise_texture;
 uniform sampler2D blue_noise_texture;
 
-const float near = 0.001;
-const float invNear = 1.0 / near;
-const float far = 200.0;
-const float invFar = 1.0 / far;
-
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
+const float STEP_SIZE = 10.0;
 
 const float CLOUD_PLANE = 10.0;
 const float CLOUD_BOTTOM = CLOUD_PLANE + 1.0;
 const float CLOUD_TOP = CLOUD_BOTTOM + 50.0;
 const float CLOUD_FADE = 20.0;
-
-const float GOLDEN_RATIO_FRACT = 0.61803398875;
+const float CLOUD_SPEED = 0.00001;
 
 const float ABSORPTION = 0.1;
+
+const float GOLDEN_RATIO_FRACT = 0.61803398875;
 
 out vec4 out_color;
 
 vec3 rayDirection(vec2 frag_coord)
 {
-  float h = near * tan(u_fieldOfView / 2.0);
-  float w = h * u_aspectRatio;
+  float h = near * tan(field_of_view / 2.0);
+  float w = h * aspect_ratio;
 
-  float a = -w + 2.0 * w * (frag_coord.x / u_screenWidth);
-  float b = -h + 2.0 * h * (frag_coord.y / u_screenHeight);
+  float a = -w + 2.0 * w * (frag_coord.x / screen_width);
+  float b = -h + 2.0 * h * (frag_coord.y / screen_height);
 
-  vec3 u = normalize(cross(u_lookVector, vec3(0.0, 1.0, 0.0)));
-  vec3 v = normalize(cross(u, u_lookVector));
-  vec3 q = near * u_lookVector;
+  vec3 u = normalize(cross(look_direction, vec3(0.0, 1.0, 0.0)));
+  vec3 v = normalize(cross(u, look_direction));
+  vec3 q = near * look_direction;
 
   vec3 s = q + (a * u) + (b * v);
 
@@ -57,7 +60,7 @@ float map(float value, float min1, float max1, float min2, float max2)
 
 float cloudDensity(vec3 sample_point)
 {
-  vec4 cloud_noise = texture(cloud_noise_texture, sample_point * 0.01 + u_time * 0.00001);
+  vec4 cloud_noise = texture(cloud_noise_texture, sample_point * 0.01 + time * CLOUD_SPEED);
   float density = cloud_noise.r - 0.04 * cloud_noise.g - 0.02 * cloud_noise.b - 0.01 * cloud_noise.a;
   
   float bottom_fade = map(sample_point.y, CLOUD_BOTTOM, CLOUD_BOTTOM + CLOUD_FADE, 0.0, 1.0);
@@ -126,22 +129,28 @@ float cloudPlaneDistance(vec3 ray_origin, vec3 ray_direction)
 }
 
 void main() {
-  float step_size = 10.0;
+  // TODO: Temporary.
   vec3 sky_color = vec3(0.2, 0.2, 0.8);
 
+  // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
+  vec3 ray_origin = eye_position;
 
-  float distance_to_cloud_plane = cloudPlaneDistance(u_eyePoint, ray_direction);
+  // All clouds lie above this plane, so we start raymarching from there.
+  float distance_to_cloud_plane = cloudPlaneDistance(eye_position, ray_direction);
+  ray_origin += distance_to_cloud_plane * ray_direction;
 
-  float blue_noise = texture(blue_noise_texture, 512.0 * vec2(gl_FragCoord.x / u_screenWidth, gl_FragCoord.y / u_screenHeight)).r;
-  blue_noise = fract(blue_noise * GOLDEN_RATIO_FRACT * u_time * 0.01);
-  float ray_offset = distance_to_cloud_plane + blue_noise * step_size;
+  // Use blue noise to offset ray origin to reduce banding.
+  float blue_noise = texture(blue_noise_texture, 512.0 * vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).r;
+  blue_noise = fract(blue_noise * GOLDEN_RATIO_FRACT * time * 0.01);
+  ray_origin += (blue_noise * STEP_SIZE) * ray_direction;
 
-  vec3 ray_origin = u_eyePoint + ray_offset * ray_direction;
-
-  vec4 result = volumeMarch(ray_origin, ray_direction, step_size);
+  // March the scene.
+  vec4 result = volumeMarch(ray_origin, ray_direction, STEP_SIZE);
   
+  // Final color should be (background_color * out_color.a + out_color.rgb)
   out_color = vec4(sky_color * result.w + result.rgb, 1.0);
 
-  gl_FragDepth = ((1.0 / distance_to_cloud_plane) - invNear) / (invFar - invNear);
+  // Hacky-depth, unnecessary if we assume clouds are rendered before other scene objects.
+  gl_FragDepth = ((1.0 / distance_to_cloud_plane) - inverse_near) / (inverse_far - inverse_near);
 }
