@@ -7,8 +7,8 @@ import { loadTexture } from '../texture';
 
 import { gl } from '../context';
 
-const cloudNoiseTexture = makeWorleyTexture(64);
-const blueNoiseTexture = loadTexture('../../blue_noise_256.png');
+const cloudNoiseTexture = makeWorleyTexture(gl, 64);
+const blueNoiseTexture = loadTexture(gl, '/blue_noise_256.png');
 
 const program = makeProgram(gl, cloudVSS, cloudFSS) as WebGLProgram;
 const vao = gl.createVertexArray();
