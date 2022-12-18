@@ -3,70 +3,66 @@
 precision highp float;
 precision highp sampler3D;
 
-uniform float u_time;
-uniform float u_screenWidth;
-uniform float u_screenHeight;
-uniform float u_aspectRatio;
-uniform float u_fieldOfView;
-uniform vec3 u_eyePoint;
-uniform vec3 u_lookVector;
+uniform float time;
+uniform float screen_width;
+uniform float screen_height;
+
+// Camera parameters
+uniform float aspect_ratio;
+uniform float field_of_view;
+uniform vec3 eye_position;
+uniform vec3 look_direction;
+const float near = 0.001; // TODO: near and far should probably be passed in
+const float far = 200.0;
+const float inverse_near = 1.0 / near;
+const float inverse_far = 1.0 / far;
 
 uniform sampler3D cloud_noise_texture;
 uniform sampler2D blue_noise_texture;
 
-const float near = 0.001;
-const float invNear = 1.0 / near;
-const float far = 200.0;
-const float invFar = 1.0 / far;
-
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
+const float STEP_SIZE = 10.0;
+const float RECURSIVE = 0.0;
 
 const float CLOUD_PLANE = 10.0;
 const float CLOUD_BOTTOM = CLOUD_PLANE + 1.0;
 const float CLOUD_TOP = CLOUD_BOTTOM + 50.0;
-const float CLOUD_FADE = 20.0;
+const float CLOUD_FADE = 10.0;
+const float CLOUD_SPEED = 0.00001;
+
+const float ABSORPTION = 0.3;
 
 const float GOLDEN_RATIO_FRACT = 0.61803398875;
-
-const float ABSORPTION = 0.1;
 
 out vec4 out_color;
 
 vec3 rayDirection(vec2 frag_coord)
 {
-  float h = near * tan(u_fieldOfView / 2.0);
-  float w = h * u_aspectRatio;
+  float h = near * tan(field_of_view / 2.0);
+  float w = h * aspect_ratio;
 
-  float a = -w + 2.0 * w * (frag_coord.x / u_screenWidth);
-  float b = -h + 2.0 * h * (frag_coord.y / u_screenHeight);
+  float a = -w + 2.0 * w * (frag_coord.x / screen_width);
+  float b = -h + 2.0 * h * (frag_coord.y / screen_height);
 
-  vec3 u = normalize(cross(u_lookVector, vec3(0.0, 1.0, 0.0)));
-  vec3 v = normalize(cross(u, u_lookVector));
-  vec3 q = near * u_lookVector;
+  vec3 u = normalize(cross(look_direction, vec3(0.0, 1.0, 0.0)));
+  vec3 v = normalize(cross(u, look_direction));
+  vec3 q = near * look_direction;
 
   vec3 s = q + (a * u) + (b * v);
 
   return normalize(s);
 }
 
-float map(float value, float min1, float max1, float min2, float max2)
-{
-  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
-}
-
 float cloudDensity(vec3 sample_point)
 {
-  vec4 cloud_noise = texture(cloud_noise_texture, sample_point * 0.01 + u_time * 0.00001);
+  vec4 cloud_noise = texture(cloud_noise_texture, sample_point * 0.01 + time * CLOUD_SPEED);
   float density = cloud_noise.r - 0.04 * cloud_noise.g - 0.02 * cloud_noise.b - 0.01 * cloud_noise.a;
-  
-  float bottom_fade = map(sample_point.y, CLOUD_BOTTOM, CLOUD_BOTTOM + CLOUD_FADE, 0.0, 1.0);
-  bottom_fade = clamp(bottom_fade, 0.0, 1.0);
 
-  float top_fade = map(sample_point.y, CLOUD_TOP - CLOUD_FADE, CLOUD_TOP, 0.0, 1.0);
-  top_fade = clamp(top_fade, 0.0, 1.0);
+  float bottom_fade = smoothstep(sample_point.y - CLOUD_BOTTOM, 0.0, CLOUD_FADE);
+  float top_fade = smoothstep(CLOUD_TOP - sample_point.y, 0.0, CLOUD_FADE);
 
-  return density * bottom_fade;
+  return density * bottom_fade * top_fade;
 }
 
 float lightMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
@@ -99,49 +95,71 @@ vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
   {
     vec3 sample_point = ray_origin + depth * ray_direction;
 
-    float density = cloudDensity(sample_point);
-    float absorption = ABSORPTION * density;
+    if (sample_point.y > CLOUD_BOTTOM && sample_point.y < CLOUD_TOP)
+    {
+      float density = cloudDensity(sample_point);
+      float absorption = ABSORPTION * density;
 
-    // Beer's law
-    transmittance *= exp(-absorption * depth_step);
+      // Beer's law
+      transmittance *= exp(-absorption * depth_step);
 
-    // Lighting
-    vec3 light_color = vec3(1.5, 0.8, 0.8);
-    vec3 light_position = vec3(5.0, 100.0, 10.0);
-    vec3 light_direction = normalize(light_position - sample_point);
-    float light_intensity = lightMarch(sample_point, light_direction, depth_step);
+      // Lighting
+      vec3 light_color = vec3(1.5, 0.8, 0.8);
+      vec3 light_position = vec3(5.0, 100.0, 10.0);
+      vec3 light_direction = normalize(light_position - sample_point);
+      float light_intensity = RECURSIVE > 0.0 ? lightMarch(sample_point, light_direction, depth_step) : 1.0;
 
-    // Update
-    color += transmittance * depth_step * absorption * light_intensity;
-    depth += depth_step;
+      // Update
+      color += transmittance * depth_step * absorption * light_color * light_intensity;
+      depth += depth_step;
+    }
+    else
+    {
+      depth = far;
+      break;
+    }
   }
   return vec4(color, transmittance);
 }
 
-// Assumes ray_origin is below clouds and ray_direction is upwards
-float cloudPlaneDistance(vec3 ray_origin, vec3 ray_direction)
-{
-  float distance_to_plane = (CLOUD_PLANE - ray_origin.y) / ray_direction.y;
-  return distance_to_plane;
-}
-
 void main() {
-  float step_size = 10.0;
+  // TODO: Temporary.
   vec3 sky_color = vec3(0.2, 0.2, 0.8);
 
+  // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
+  vec3 ray_origin = eye_position;
+  float ray_offset = 0.0;
 
-  float distance_to_cloud_plane = cloudPlaneDistance(u_eyePoint, ray_direction);
+  float below_clouds = ray_origin.y < CLOUD_BOTTOM ? 1.0 : 0.0;
+  float looking_up = ray_direction.y > 0.0 ? 1.0 : 0.0;
+  ray_offset += looking_up * below_clouds * ((CLOUD_BOTTOM - ray_origin.y) / ray_direction.y);
 
-  float blue_noise = texture(blue_noise_texture, 512.0 * vec2(gl_FragCoord.x / u_screenWidth, gl_FragCoord.y / u_screenHeight)).r;
-  blue_noise = fract(blue_noise * GOLDEN_RATIO_FRACT * u_time * 0.01);
-  float ray_offset = distance_to_cloud_plane + blue_noise * step_size;
+  float above_clouds = ray_origin.y > CLOUD_TOP ? 1.0 : 0.0;
+  float looking_down = ray_direction.y < 0.0 ? 1.0 : 0.0;
+  ray_offset += looking_down * above_clouds * ((CLOUD_TOP - ray_origin.y) / ray_direction.y);
 
-  vec3 ray_origin = u_eyePoint + ray_offset * ray_direction;
+  ray_origin += ray_offset * ray_direction;
 
-  vec4 result = volumeMarch(ray_origin, ray_direction, step_size);
+  float fog = clamp((far - ray_offset) / (far - near), 0.0, 1.0);
+
+  // Use blue noise to offset ray origin to reduce banding.
+  float blue_noise = texture(blue_noise_texture, 50.0 * vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).r;
+  //blue_noise = fract(blue_noise * GOLDEN_RATIO_FRACT * time * 0.01);
+  ray_origin += (blue_noise * STEP_SIZE) * ray_direction;
+
+  // March the scene.
+  vec4 result = volumeMarch(ray_origin, ray_direction, STEP_SIZE);
+
+  out_color = vec4(result.rgb * fog, 1.0);
   
-  out_color = vec4(sky_color * result.w + result.rgb, 1.0);
+  out_color = vec4(sky_color * result.a + result.rgb, 1.0);
+  out_color = vec4(mix(sky_color, out_color.rgb, fog), 1.0);
 
-  gl_FragDepth = ((1.0 / distance_to_cloud_plane) - invNear) / (invFar - invNear);
+  //out_color = vec4(ray_direction, 1.0);
+  //out_color = vec4(0.8, 0.2, 0.9, 1.0);
+
+  // Let models get rendered in front. This is not the correct way to do this.
+  gl_FragDepth = 0.9999999;
+  //out_color = vec4(1.0, 0.3, 1.0, 1.0);
 }

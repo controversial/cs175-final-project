@@ -3,7 +3,8 @@ import { mat4, vec3 } from 'gl-matrix';
 import { makeProgram } from '../shader';
 import basicVSS from '../shaders/basic_vert.glsl';
 import basicFSS from '../shaders/basic_frag.glsl';
-import * as shapes from '../shapes';
+import * as shapes from '../room-geom';
+import type { SceneContext } from 'renderer';
 
 const program = makeProgram(gl, basicVSS, basicFSS) as WebGLProgram;
 const vao = gl.createVertexArray();
@@ -107,13 +108,13 @@ gl.vertexAttribDivisor(aModelMatrix + 3, 1);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
-export function renderRoom(time: number, viewMatrix: mat4, projectionMatrix: mat4) {
+export function renderRoom(ctx: SceneContext) {
   gl.useProgram(program);
 
   gl.bindVertexArray(vao);
-  gl.uniform1f(uTime, time * 0.001);
-  gl.uniformMatrix4fv(uViewMatrix, false, viewMatrix);
-  gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
+  gl.uniform1f(uTime, ctx.time * 0.001);
+  gl.uniformMatrix4fv(uViewMatrix, false, ctx.camera.viewMatrix);
+  gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, invertedCubeInstances, gl.DYNAMIC_DRAW);
