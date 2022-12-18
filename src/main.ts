@@ -4,12 +4,13 @@ import Renderer from './renderer';
 import { canvas, gl } from './context';
 
 import { renderRoom } from './scenes/room';
-// import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
+import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { renderClouds } from './scenes/cloud';
 
 const renderer = new Renderer(canvas, gl);
 renderer.addRenderStep(renderClouds);
 renderer.addRenderStep(renderRoom);
+loadBirdbath().then(() => renderer.addRenderStep(renderBirdbath));
 renderer.start();
 
 // Vite cleanup
