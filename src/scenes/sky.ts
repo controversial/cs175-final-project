@@ -137,7 +137,7 @@ const viewDistanceMeters = 9000;
 const viewZenithAngleRadians = 1.47;
 const viewAzimuthAngleRadians = -1.1;
 const sunZenithAngleRadians = 1.3;
-const sunAzimuthAngleRadians = 2.9;
+const sunAzimuthAngleRadians = -2.9;
 const exposure = 10;
 const sunDirection = new Float32Array([
   Math.cos(sunAzimuthAngleRadians) * Math.sin(sunZenithAngleRadians),
