@@ -4,6 +4,7 @@ import { makeProgram } from '../shader';
 import { WebIO } from '@gltf-transform/core';
 import { gl } from '../context';
 import type { SceneContext } from '../renderer';
+import { renderReflectionTexture, reflectionTexture } from './reflection';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
 
@@ -19,6 +20,8 @@ const aNormal = gl.getAttribLocation(program, 'a_normal');
 const uTime = gl.getUniformLocation(program, 'u_time');
 const uViewMatrix = gl.getUniformLocation(program, 'u_viewMatrix');
 const uProjectionMatrix = gl.getUniformLocation(program, 'u_projectionMatrix');
+const uReflectionTexture = gl.getUniformLocation(program, 'u_reflectionTexture');
+const uEyePosition = gl.getUniformLocation(program, 'u_eyePosition');
 
 let indexCount: number | undefined;
 let loaded = false;
@@ -104,12 +107,19 @@ export function renderWater(ctx: SceneContext) {
     return;
   }
 
+  renderReflectionTexture(ctx);
+
   gl.useProgram(program);
   gl.bindVertexArray(vao);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
 
   gl.uniformMatrix4fv(uViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
   gl.uniform1f(uTime, ctx.time);
+  gl.uniform1i(uReflectionTexture, 0);
+  gl.uniform3fv(uEyePosition, ctx.camera.eyePosition);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }

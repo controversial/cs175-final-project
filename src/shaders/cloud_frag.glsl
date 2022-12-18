@@ -23,7 +23,7 @@ uniform sampler2D blue_noise_texture;
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
 const float STEP_SIZE = 10.0;
-const float RECURSIVE = 1.0;
+const float RECURSIVE = 0.0;
 
 const float CLOUD_PLANE = 10.0;
 const float CLOUD_BOTTOM = CLOUD_PLANE + 1.0;
@@ -36,7 +36,6 @@ const float ABSORPTION = 0.3;
 const float GOLDEN_RATIO_FRACT = 0.61803398875;
 
 out vec4 out_color;
-
 
 vec3 rayDirection(vec2 frag_coord)
 {
@@ -151,10 +150,16 @@ void main() {
 
   // March the scene.
   vec4 result = volumeMarch(ray_origin, ray_direction, STEP_SIZE);
+
+  out_color = vec4(result.rgb * fog, 1.0);
   
   out_color = vec4(sky_color * result.a + result.rgb, 1.0);
   out_color = vec4(mix(sky_color, out_color.rgb, fog), 1.0);
 
-  // Let models get rendered in front.
+  //out_color = vec4(ray_direction, 1.0);
+  //out_color = vec4(0.8, 0.2, 0.9, 1.0);
+
+  // Let models get rendered in front. This is not the correct way to do this.
   gl_FragDepth = 0.9999999;
+  //out_color = vec4(1.0, 0.3, 1.0, 1.0);
 }
