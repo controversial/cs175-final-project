@@ -27,7 +27,7 @@ gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
 // load textures
 const [irradianceLUT, scatteringLUT, transmittanceLUT] = await Promise.all(
   ['irradiance.dat', 'scattering.dat', 'transmittance.dat']
-    .map((fname) => `/public/skytables/${fname}`)
+    .map((fname) => `/skytables/${fname}`)
     .map((path) => fetch(path).then((r) => r.arrayBuffer()
       .then((buf) => new Float32Array(buf))))
 );
