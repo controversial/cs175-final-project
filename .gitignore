@@ -23,3 +23,6 @@ dist-ssr
 
 *.o
 *.app
+
+*.blend*
+birdbath-old*
