@@ -1,11 +1,11 @@
 import { gl, canvas } from '../context';
 import { makeProgram } from '../shader';
 import vertexShaderSource from '../shaders/atmosphere/demo/vertex_shader.glsl';
-import fragmentShaderSource from '../shaders/atmosphere/demo/fragment_texture.glsl';
+import fragmentShaderSource from '../shaders/atmosphere/fragment_texture.glsl';
 import { vec2, vec3 } from 'gl-matrix';
 
 // program and vertex buffer
-const radianceProgram = makeProgram(gl, vertexShaderSource, fragmentShaderSource) as WebGLProgram;
+const skyProgram = makeProgram(gl, vertexShaderSource, fragmentShaderSource) as WebGLProgram;
 const vao = gl.createVertexArray() as WebGLVertexArrayObject;
 const vertexBuffer = gl.createBuffer() as WebGLBuffer;
 const vertices = new Float32Array([
@@ -14,7 +14,7 @@ const vertices = new Float32Array([
 ]);
 
 // attributes
-const aPosition = gl.getAttribLocation(radianceProgram, 'vertex');
+const aPosition = gl.getAttribLocation(skyProgram, 'vertex');
 
 // setup vao
 gl.bindVertexArray(vao);
@@ -26,7 +26,7 @@ gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
 // load textures
 const [irradianceLUT, scatteringLUT, transmittanceLUT] = await Promise.all(
   ['irradiance.dat', 'scattering.dat', 'transmittance.dat']
-    .map((fname) => `/precomputed_atmospheric_scattering/output/Doc/${fname}`)
+    .map((fname) => `/public/skytables/${fname}`)
     .map((path) => fetch(path).then((r) => r.arrayBuffer()
       .then((buf) => new Float32Array(buf))))
 );
@@ -41,12 +41,10 @@ const IRRADIANCE_TEXTURE_WIDTH = 64;
 const IRRADIANCE_TEXTURE_HEIGHT = 16;
 
 // texture uniforms
-const irradianceTextureLocation = gl.getUniformLocation(radianceProgram, 'irradiance_texture');
-const scatteringTextureLocation = gl.getUniformLocation(radianceProgram, 'scattering_texture');
-const singleMieScatteringTextureLocation = gl.getUniformLocation(radianceProgram, 'single_mie_scattering_texture');
-const transmittanceTextureLocation = gl.getUniformLocation(radianceProgram, 'transmittance_texture');
-
-console.log(singleMieScatteringTextureLocation, transmittanceTextureLocation, scatteringTextureLocation, irradianceTextureLocation);
+const irradianceTextureLocation = gl.getUniformLocation(skyProgram, 'irradiance_texture');
+const scatteringTextureLocation = gl.getUniformLocation(skyProgram, 'scattering_texture');
+const singleMieScatteringTextureLocation = gl.getUniformLocation(skyProgram, 'single_mie_scattering_texture');
+const transmittanceTextureLocation = gl.getUniformLocation(skyProgram, 'transmittance_texture');
 
 function createTexture(textureUnit: number, target: number) {
   const texture = gl.createTexture();
@@ -88,8 +86,6 @@ gl.texImage3D(
   scatteringLUT
 );
 
-console.log(irradianceLUT);
-
 const irradianceTexture = createTexture(gl.TEXTURE2, gl.TEXTURE_2D);
 gl.texImage2D(
   gl.TEXTURE_2D,
@@ -106,14 +102,14 @@ gl.texImage2D(
 // uniform locations
 const kSunAngularRadius = 0.00935 / 2;
 const kLengthUnitInMeters = 1000;
-const uModelFromView = gl.getUniformLocation(radianceProgram, 'model_from_view');
-const uViewFromClip = gl.getUniformLocation(radianceProgram, 'view_from_clip');
-const uCamera = gl.getUniformLocation(radianceProgram, 'camera');
-const uWhitePoint = gl.getUniformLocation(radianceProgram, 'white_point');
-const uExposure = gl.getUniformLocation(radianceProgram, 'exposure');
-const uEarthCenter = gl.getUniformLocation(radianceProgram, 'earth_center');
-const uSunDirection = gl.getUniformLocation(radianceProgram, 'sun_direction');
-const uSunSize = gl.getUniformLocation(radianceProgram, 'sun_size');
+const uModelFromView = gl.getUniformLocation(skyProgram, 'model_from_view');
+const uViewFromClip = gl.getUniformLocation(skyProgram, 'view_from_clip');
+const uCamera = gl.getUniformLocation(skyProgram, 'camera');
+const uWhitePoint = gl.getUniformLocation(skyProgram, 'white_point');
+const uExposure = gl.getUniformLocation(skyProgram, 'exposure');
+const uEarthCenter = gl.getUniformLocation(skyProgram, 'earth_center');
+const uSunDirection = gl.getUniformLocation(skyProgram, 'sun_direction');
+const uSunSize = gl.getUniformLocation(skyProgram, 'sun_size');
 
 
 // THE SUN
@@ -132,21 +128,18 @@ sun;
 // uniform data
 const modelFromView = new Float32Array(16);
 const viewFromClip = new Float32Array(16);
-const kFovY = 50 / 180 * Math.PI;
 const viewDistanceMeters = 9000;
-const viewZenithAngleRadians = 1.47;
-const viewAzimuthAngleRadians = -1.1;
 const sunZenithAngleRadians = 1.3;
-const sunAzimuthAngleRadians = -2.9;
+const sunAzimuthAngleRadians = 2.9;
 const exposure = 10;
-const sunDirection = new Float32Array([
+const sunDirection = vec3.fromValues(
   Math.cos(sunAzimuthAngleRadians) * Math.sin(sunZenithAngleRadians),
   Math.sin(sunAzimuthAngleRadians) * Math.sin(sunZenithAngleRadians),
   Math.cos(sunZenithAngleRadians),
-]);
+);
 
 // constant uniforms
-gl.useProgram(radianceProgram);
+gl.useProgram(skyProgram);
 
 gl.uniform1i(transmittanceTextureLocation, 0);
 gl.uniform1i(scatteringTextureLocation, 1);
@@ -156,20 +149,29 @@ gl.uniform1i(irradianceTextureLocation, 2);
 gl.uniform3f(uEarthCenter, 0, 0, -6360000 / kLengthUnitInMeters);
 gl.uniform2f(uSunSize, Math.tan(kSunAngularRadius), Math.cos(kSunAngularRadius));
 
-// main render function
-export function RenderRadianceMap() {
-  gl.useProgram(radianceProgram);
-  gl.bindVertexArray(vao);
-  gl.uniform1f(irradianceTextureLocation, 0);
+function updateCanvasSize() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * (window.devicePixelRatio ?? 1);
+  canvas.height = rect.height * (window.devicePixelRatio ?? 1);
+}
 
-  const kTanFovY = Math.tan(kFovY / 2);
-  const aspectRatio = canvas.width / canvas.height;
+
+// main render function
+export function RenderSkyTexture(camera: Camera, dirToSun: vec3) {
+  gl.useProgram(skyProgram);
+  gl.bindVertexArray(vao);
+
+  const kTanFovY = Math.tan(camera.fieldOfView / 2);
+  const aspectRatio = camera.aspect;
   viewFromClip.set([
     kTanFovY * aspectRatio, 0, 0, 0,
     0, kTanFovY, 0, 0,
     0, 0, 0, -1,
     0, 0, 1, 1,
   ]);
+
+  const viewZenithAngleRadians = Math.PI * camera.angles[0] / 180;
+  const viewAzimuthAngleRadians = Math.PI * camera.angles[1] / 180;
 
   const cosZ = Math.cos(viewZenithAngleRadians);
   const sinZ = Math.sin(viewZenithAngleRadians);
@@ -185,27 +187,40 @@ export function RenderRadianceMap() {
   gl.uniformMatrix4fv(uViewFromClip, true, viewFromClip);
   gl.uniformMatrix4fv(uModelFromView, true, modelFromView);
 
-  gl.uniform3f(uCamera, modelFromView[3], modelFromView[7], modelFromView[11]);
+  gl.uniform3f(uCamera, modelFromView[3], modelFromView[7], modelFromView[11] + 2.0);
   gl.uniform3f(uWhitePoint, 1, 1, 1);
   gl.uniform1f(uExposure, exposure);
-  gl.uniform3fv(uSunDirection, sunDirection);
+  gl.uniform3fv(uSunDirection, dirToSun);
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
-function draw() {
-  gl.viewport(0, 0, canvas.width, canvas.height);
+// DEBUG (uncomment function to see sky.html)
 
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.CULL_FACE);
+import Camera from '../camera';
 
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+export function debugDrawSky(camera: Camera) {
+  updateCanvasSize();
+  camera.attachKeyControls();
+  let prevTime = 0;
 
-  RenderRadianceMap();
+  function draw(time: number) {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    const deltaTime = time - prevTime;
+    prevTime = time;
+    camera.update(deltaTime);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
 
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    RenderSkyTexture(camera, sunDirection);
+
+    requestAnimationFrame(draw);
+  }
   requestAnimationFrame(draw);
 }
 
-requestAnimationFrame(draw);
+// debugDrawSky(new Camera(canvas));
 
