@@ -3,18 +3,16 @@ import birdBathFSS from '../shaders/birdbath_frag.glsl';
 import { mat4 } from 'gl-matrix';
 import { makeProgram } from '../shader';
 import { WebIO } from '@gltf-transform/core';
+import type { Texture } from '@gltf-transform/core';
+import { loadTexture } from '../texture';
 import type { SceneContext } from '../renderer';
 
 import { gl } from '../context';
-import { loadTextureRgb } from '../texture';
 
 
 const program = makeProgram(gl, birdBathVSS, birdBathFSS) as WebGLProgram;
 const vertexBuffer = gl.createBuffer();
 const indexBuffer = gl.createBuffer();
-
-const myColorTexture = loadTextureRgb(gl, '../../birdbath_albedo.png') as WebGLTexture;
-const myNormalTexture = loadTextureRgb(gl, '../../birdbath_normal.png') as WebGLTexture;
 
 // data
 const modelMatrix = mat4.create();
@@ -33,9 +31,27 @@ const aPosition = gl.getAttribLocation(program, 'a_position');
 const aNormal = gl.getAttribLocation(program, 'a_normal');
 const aTexcoord = gl.getAttribLocation(program, 'a_texcoord');
 
-let indexCount: number | undefined;
+// Model
 const vao = gl.createVertexArray();
-let loaded = false;
+let loadedData: Awaited<ReturnType<typeof fetchBirdbath>> | null = null;
+
+// Texture loading from gltf
+function textureFromGltf(texture: Texture): WebGLTexture | null {
+  const data = texture.getImage();
+  const size = texture.getSize();
+  const mime = texture.getMimeType();
+  if (!data || !size) throw new Error('could not get data from texture');
+  const glTexture = gl.createTexture();
+  if (!glTexture) throw new Error('could not create texture');
+  gl.bindTexture(gl.TEXTURE_2D, glTexture);
+  if (!(data instanceof Uint8Array)) throw new Error('unexpected image data type');
+  let str = '';
+  for (let i = 0; i < data.length; i++) str += String.fromCharCode(data[i]);
+  const base64Data = btoa(str);
+  const src = `data:${mime};base64,${base64Data}`;
+
+  return loadTexture(gl, src);
+}
 
 async function fetchBirdbath() {
   console.log('loading birdbath');
@@ -64,28 +80,20 @@ async function fetchBirdbath() {
   // Get textures (base color and normal map)
   const material = primitive.getMaterial();
   if (!material) throw new Error('missing material in birdbath model');
-  const baseColorTexture = material.getBaseColorTexture();
-  const normalTexture = material.getNormalTexture();
-  if (!baseColorTexture || !normalTexture) throw new Error('missing textures in birdbath model');
-  const baseColorTextureData = baseColorTexture.getImage();
-  const normalTextureData = normalTexture.getImage();
-  const baseColorTextureSize = baseColorTexture.getSize();
-  const normalTextureSize = normalTexture.getSize();
-  if (!baseColorTextureData || !normalTextureData || !baseColorTextureSize || !normalTextureSize) throw new Error('could not get data from birdbath textures');
+
+  const baseColorImage = material.getBaseColorTexture();
+  const normalImage = material.getNormalTexture();
+  if (!baseColorImage || !normalImage) throw new Error('missing textures in birdbath model');
+  const baseColorTexture = await textureFromGltf(baseColorImage);
+  const normalTexture = await textureFromGltf(normalImage);
 
   return {
     positionData,
     normalData,
     texcoordData,
     indexData,
-    baseColorTexture: {
-      data: baseColorTextureData,
-      size: baseColorTextureSize,
-    },
-    normalTexture: {
-      data: normalTextureData,
-      size: normalTextureSize,
-    },
+    baseColorTexture,
+    normalTexture,
     indexCount: indexData.length,
   };
 }
@@ -136,15 +144,13 @@ function setupVAO(data: Awaited<ReturnType<typeof fetchBirdbath>>) {
 
 export async function loadBirdbath() {
   const data = await fetchBirdbath();
+  loadedData = data;
   setupVAO(data);
-  indexCount = data.indexCount;
-  console.log('vertex count', indexCount);
-  loaded = true;
 }
 
 
 export function renderBirdbath(ctx: SceneContext) {
-  if (!loaded) {
+  if (!loadedData) {
     console.warn('Birdbath not loaded yet');
     return;
   }
@@ -153,11 +159,11 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.bindVertexArray(vao);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, myColorTexture);
+  gl.bindTexture(gl.TEXTURE_2D, loadedData.baseColorTexture);
   gl.uniform1i(uColorTexture, 0);
 
   gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, myNormalTexture);
+  gl.bindTexture(gl.TEXTURE_2D, loadedData.normalTexture);
   gl.uniform1i(uNormalTexture, 1);
 
   gl.uniformMatrix4fv(uModelMatrix, false, modelMatrix);
@@ -166,5 +172,6 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.uniform1f(uTime, ctx.time);
   gl.uniform3fv(uLightPosition, ctx.camera.eyePosition, 0, 3);
 
-  gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
+
+  gl.drawElements(gl.TRIANGLES, loadedData.indexCount, gl.UNSIGNED_SHORT, 0);
 }
