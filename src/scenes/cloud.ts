@@ -40,7 +40,7 @@ gl.enableVertexAttribArray(0);
 gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
 export function renderClouds(time: number, width: number, height: number, aspectRatio: number, fieldOfView: number, eyePosition: vec3, lookDirection: vec3) {
-  console.log('rendering clouds');
+  // console.log('rendering clouds');
 
   gl.useProgram(program);
   gl.bindVertexArray(vao);
