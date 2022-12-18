@@ -22,5 +22,5 @@ void main() {
 
   float diffuse = clamp(dot(normal, light_direction), 0.0, 1.0);
 
-  outColor = texture(u_colorTexture, v_texcoord) * diffuse;
+  outColor = vec4(texture(u_colorTexture, v_texcoord).rgb * diffuse, 1.0);
 }
