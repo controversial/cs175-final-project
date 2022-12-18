@@ -1,8 +1,9 @@
-import { gl, canvas } from '../context';
+import { gl } from '../context';
 import { makeProgram } from '../shader';
-import vertexShaderSource from '../shaders/atmosphere/demo/vertex_shader.glsl';
+import vertexShaderSource from '../shaders/atmosphere/vertex_shader.glsl';
 import fragmentShaderSource from '../shaders/atmosphere/fragment_texture.glsl';
 import { vec2, vec3 } from 'gl-matrix';
+import type Camera from '../camera';
 
 // program and vertex buffer
 const skyProgram = makeProgram(gl, vertexShaderSource, fragmentShaderSource) as WebGLProgram;
@@ -128,11 +129,11 @@ sun;
 // uniform data
 const modelFromView = new Float32Array(16);
 const viewFromClip = new Float32Array(16);
-const viewDistanceMeters = 9000;
-const sunZenithAngleRadians = 1.3;
-const sunAzimuthAngleRadians = 2.9;
-const exposure = 10;
-const sunDirection = vec3.fromValues(
+export const viewDistanceMeters = 9000;
+export const sunZenithAngleRadians = 1.3;
+export const sunAzimuthAngleRadians = 2.9;
+export const exposure = 10;
+export const sunDirection = vec3.fromValues(
   Math.cos(sunAzimuthAngleRadians) * Math.sin(sunZenithAngleRadians),
   Math.sin(sunAzimuthAngleRadians) * Math.sin(sunZenithAngleRadians),
   Math.cos(sunZenithAngleRadians),
@@ -148,12 +149,6 @@ gl.uniform1i(irradianceTextureLocation, 2);
 
 gl.uniform3f(uEarthCenter, 0, 0, -6360000 / kLengthUnitInMeters);
 gl.uniform2f(uSunSize, Math.tan(kSunAngularRadius), Math.cos(kSunAngularRadius));
-
-function updateCanvasSize() {
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * (window.devicePixelRatio ?? 1);
-  canvas.height = rect.height * (window.devicePixelRatio ?? 1);
-}
 
 
 // main render function
@@ -194,33 +189,3 @@ export function RenderSkyTexture(camera: Camera, dirToSun: vec3) {
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
-
-// DEBUG (uncomment function to see sky.html)
-
-import Camera from '../camera';
-
-export function debugDrawSky(camera: Camera) {
-  updateCanvasSize();
-  camera.attachKeyControls();
-  let prevTime = 0;
-
-  function draw(time: number) {
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    const deltaTime = time - prevTime;
-    prevTime = time;
-    camera.update(deltaTime);
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    RenderSkyTexture(camera, sunDirection);
-
-    requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-}
-
-// debugDrawSky(new Camera(canvas));
-
