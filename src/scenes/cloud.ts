@@ -1,6 +1,5 @@
 import cloudVertexShaderSource from '../shaders/screenquad_vert.glsl';
 import cloudFragmentShaderSource from '../shaders/cloud_frag.glsl';
-import { vec3 } from 'gl-matrix';
 import { makeProgram } from '../shader';
 import { makeWorleyTexture } from './worley';
 import { loadTexture } from '../texture';
@@ -64,3 +63,36 @@ export function renderClouds(ctx: SceneContext) {
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
+export function renderCloudTexture(ctx: SceneContext) {
+  // Initialize texture
+  const texture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    ctx.size[0],
+    ctx.size[1],
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null
+  );
+
+  // Set texture parameters
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+  // Initialize framebuffer
+  const framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+  // Render to texture
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+  renderClouds(ctx);
+
+  return texture;
+}
