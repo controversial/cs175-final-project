@@ -6,11 +6,15 @@ import { WebIO } from '@gltf-transform/core';
 import type { SceneContext } from '../renderer';
 
 import { gl } from '../context';
+import { loadTextureRgb } from '../texture';
 
 
 const program = makeProgram(gl, birdBathVSS, birdBathFSS) as WebGLProgram;
 const vertexBuffer = gl.createBuffer();
 const indexBuffer = gl.createBuffer();
+
+const myColorTexture = loadTextureRgb(gl, '../../birdbath_albedo.png') as WebGLTexture;
+const myNormalTexture = loadTextureRgb(gl, '../../birdbath_normal.png') as WebGLTexture;
 
 // data
 const modelMatrix = mat4.create();
@@ -20,6 +24,9 @@ const uModelMatrix = gl.getUniformLocation(program, 'u_modelMatrix');
 const uViewMatrix = gl.getUniformLocation(program, 'u_viewMatrix');
 const uProjectionMatrix = gl.getUniformLocation(program, 'u_projectionMatrix');
 const uTime = gl.getUniformLocation(program, 'u_time');
+const uLightPosition = gl.getUniformLocation(program, 'u_lightPosition');
+const uColorTexture = gl.getUniformLocation(program, 'u_colorTexture');
+const uNormalTexture = gl.getUniformLocation(program, 'u_normalTexture');
 
 // attribute locations
 const aPosition = gl.getAttribLocation(program, 'a_position');
@@ -145,10 +152,19 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, myColorTexture);
+  gl.uniform1i(uColorTexture, 0);
+
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, myNormalTexture);
+  gl.uniform1i(uNormalTexture, 1);
+
   gl.uniformMatrix4fv(uModelMatrix, false, modelMatrix);
   gl.uniformMatrix4fv(uViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
   gl.uniform1f(uTime, ctx.time);
+  gl.uniform3fv(uLightPosition, ctx.camera.eyePosition, 0, 3);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }
