@@ -52,12 +52,15 @@ const kSunAngularRadius = 0.00935 / 2;
 const kSunSolidAngle = Math.PI * kSunAngularRadius * kSunAngularRadius;
 const kLengthUnitInMeters = 1000;
 
+import vertexShaderSource from './vertex_shader.glsl';
+import fragmentShaderSource from './fragment_shader.glsl';
+
 /*
 <p>As in the C++ version, the code consists in a single class. Its constructor
 initializes the WebGL canvas, declares the fields of the class, sets up the
 event handlers and starts the resource loading and the render loop:
 */
-const PATH = '/src/shaders/atmosphere/demo/';
+const PATH = '/skytables/';
 
 class Demo {
   constructor(rootElement) {
@@ -166,12 +169,8 @@ in the <code>Utils</code> class below):
       );
     });
 
-    Utils.loadShaderSource(PATH + 'vertex_shader.glsl', (source) => {
-      this.vertexShaderSource = source;
-    });
-    Utils.loadShaderSource(PATH + 'fragment_texture.glsl', (source) => {
-      this.fragmentShaderSource = source;
-    });
+    this.vertexShaderSource = vertexShaderSource;
+    this.fragmentShaderSource = fragmentShaderSource;
   }
 
   /*
@@ -212,6 +211,7 @@ a full screen quad with it:
 */
 
   onRender() {
+    console.log('render');
     const gl = this.gl;
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -381,14 +381,6 @@ texture objects from them:
 */
 
 class Utils {
-  static loadShaderSource(shaderName, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', shaderName);
-    xhr.responseType = 'text';
-    xhr.onload = (event) => callback(xhr.responseText.trim());
-    xhr.send();
-  }
-
   static createShader(gl, type, source) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -424,3 +416,5 @@ class Utils {
     return texture;
   }
 }
+
+window.Demo = Demo;
