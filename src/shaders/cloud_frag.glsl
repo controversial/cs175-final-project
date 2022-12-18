@@ -19,6 +19,7 @@ const float inverse_far = 1.0 / far;
 
 uniform sampler3D cloud_noise_texture;
 uniform sampler2D blue_noise_texture;
+uniform sampler2D sky_texture;
 
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
@@ -123,8 +124,7 @@ vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
 }
 
 void main() {
-  // TODO: Temporary.
-  vec3 sky_color = vec3(0.2, 0.2, 0.8);
+  vec3 sky_color = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).rgb;
 
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
@@ -156,10 +156,6 @@ void main() {
   out_color = vec4(sky_color * result.a + result.rgb, 1.0);
   out_color = vec4(mix(sky_color, out_color.rgb, fog), 1.0);
 
-  //out_color = vec4(ray_direction, 1.0);
-  //out_color = vec4(0.8, 0.2, 0.9, 1.0);
-
   // Let models get rendered in front. This is not the correct way to do this.
   gl_FragDepth = 0.9999999;
-  //out_color = vec4(1.0, 0.3, 1.0, 1.0);
 }

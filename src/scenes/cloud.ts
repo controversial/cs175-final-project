@@ -8,6 +8,8 @@ import { gl } from '../context';
 import { SceneContext } from 'renderer';
 import { vec3 } from 'gl-matrix';
 
+import { skyTexture } from './sky-texture';
+
 const cloudNoiseTexture = makeWorleyTexture(gl, 64);
 const blueNoiseTexture = loadTexture(gl, '../../blue_noise_256.png');
 
@@ -22,6 +24,7 @@ const uniformLocationEyePosition = gl.getUniformLocation(program, 'eye_position'
 const uniformLocationLookDirection = gl.getUniformLocation(program, 'look_direction');
 const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
 const uniformLocationBlueNoiseTexture = gl.getUniformLocation(program, 'blue_noise_texture');
+const uniformLocationSkyTexture = gl.getUniformLocation(program, 'sky_texture');
 
 // Setup buffers
 const vao = gl.createVertexArray() as WebGLVertexArrayObject;
@@ -52,6 +55,10 @@ export function renderClouds(time: number, width: number, height: number, aspect
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, blueNoiseTexture);
   gl.uniform1i(uniformLocationBlueNoiseTexture, 1);
+
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, skyTexture);
+  gl.uniform1i(uniformLocationSkyTexture, 2);
 
   gl.uniform1f(uniformLocationTime, time);
   gl.uniform1f(uniformLocationScreenWidth, width);

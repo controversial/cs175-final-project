@@ -4,6 +4,7 @@ import vertexShaderSource from '../shaders/atmosphere/vertex_shader.glsl';
 import fragmentShaderSource from '../shaders/atmosphere/fragment_texture.glsl';
 import { vec2, vec3 } from 'gl-matrix';
 import type Camera from '../camera';
+import { SceneContext } from '../renderer';
 
 // program and vertex buffer
 const skyProgram = makeProgram(gl, vertexShaderSource, fragmentShaderSource) as WebGLProgram;
@@ -152,7 +153,7 @@ gl.uniform2f(uSunSize, Math.tan(kSunAngularRadius), Math.cos(kSunAngularRadius))
 
 
 // main render function
-export function RenderSkyTexture(camera: Camera, dirToSun: vec3) {
+export function RenderSky(camera: Camera, dirToSun: vec3) {
   gl.useProgram(skyProgram);
   gl.bindVertexArray(vao);
 
@@ -188,4 +189,15 @@ export function RenderSkyTexture(camera: Camera, dirToSun: vec3) {
   gl.uniform3fv(uSunDirection, dirToSun);
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+export function RenderSkyWithContext(ctx: SceneContext) {
+  const zenithAngle = ((ctx.time / 10000.0) % 3.5) - 1.5707;
+  const azimuthAngle = 2.9;
+  const mySunDirection = vec3.fromValues(
+    Math.cos(azimuthAngle) * Math.sin(zenithAngle),
+    Math.sin(azimuthAngle) * Math.sin(zenithAngle),
+    Math.cos(zenithAngle),
+  );
+  RenderSky(ctx.camera, mySunDirection);
 }

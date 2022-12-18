@@ -7,8 +7,13 @@ import { renderRoom } from './scenes/room';
 import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { loadWater, renderWater } from './scenes/water';
 import { renderCloudsWithContext } from './scenes/cloud';
+import { renderSkyTexture, setupSkyTexture } from './scenes/sky-texture';
 
 const renderer = new Renderer(canvas, gl);
+
+setupSkyTexture(renderer.sceneContext);
+renderer.addRenderStep(renderSkyTexture);
+
 renderer.addRenderStep(renderCloudsWithContext);
 renderer.addRenderStep(renderRoom);
 loadBirdbath().then(() => {
