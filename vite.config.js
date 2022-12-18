@@ -14,7 +14,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        // other html entry points could go here
+        sky: resolve(__dirname, 'sky.html'),
       },
     },
   },
