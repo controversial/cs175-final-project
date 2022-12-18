@@ -154,4 +154,7 @@ void main() {
   
   out_color = vec4(sky_color * result.a + result.rgb, 1.0);
   out_color = vec4(mix(sky_color, out_color.rgb, fog), 1.0);
+
+  // Let models get rendered in front.
+  gl_FragDepth = 0.9999999;
 }
