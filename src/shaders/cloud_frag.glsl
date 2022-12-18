@@ -23,18 +23,20 @@ uniform sampler2D blue_noise_texture;
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
 const float STEP_SIZE = 10.0;
+const float RECURSIVE = 1.0;
 
 const float CLOUD_PLANE = 10.0;
 const float CLOUD_BOTTOM = CLOUD_PLANE + 1.0;
 const float CLOUD_TOP = CLOUD_BOTTOM + 50.0;
-const float CLOUD_FADE = 20.0;
+const float CLOUD_FADE = 10.0;
 const float CLOUD_SPEED = 0.00001;
 
-const float ABSORPTION = 0.1;
+const float ABSORPTION = 0.3;
 
 const float GOLDEN_RATIO_FRACT = 0.61803398875;
 
 out vec4 out_color;
+
 
 vec3 rayDirection(vec2 frag_coord)
 {
@@ -53,23 +55,15 @@ vec3 rayDirection(vec2 frag_coord)
   return normalize(s);
 }
 
-float map(float value, float min1, float max1, float min2, float max2)
-{
-  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
-}
-
 float cloudDensity(vec3 sample_point)
 {
   vec4 cloud_noise = texture(cloud_noise_texture, sample_point * 0.01 + time * CLOUD_SPEED);
   float density = cloud_noise.r - 0.04 * cloud_noise.g - 0.02 * cloud_noise.b - 0.01 * cloud_noise.a;
-  
-  float bottom_fade = map(sample_point.y, CLOUD_BOTTOM, CLOUD_BOTTOM + CLOUD_FADE, 0.0, 1.0);
-  bottom_fade = clamp(bottom_fade, 0.0, 1.0);
 
-  float top_fade = map(sample_point.y, CLOUD_TOP - CLOUD_FADE, CLOUD_TOP, 0.0, 1.0);
-  top_fade = clamp(top_fade, 0.0, 1.0);
+  float bottom_fade = smoothstep(sample_point.y - CLOUD_BOTTOM, 0.0, CLOUD_FADE);
+  float top_fade = smoothstep(CLOUD_TOP - sample_point.y, 0.0, CLOUD_FADE);
 
-  return density * bottom_fade;
+  return density * bottom_fade * top_fade;
 }
 
 float lightMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
@@ -102,30 +96,31 @@ vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
   {
     vec3 sample_point = ray_origin + depth * ray_direction;
 
-    float density = cloudDensity(sample_point);
-    float absorption = ABSORPTION * density;
+    if (sample_point.y > CLOUD_BOTTOM && sample_point.y < CLOUD_TOP)
+    {
+      float density = cloudDensity(sample_point);
+      float absorption = ABSORPTION * density;
 
-    // Beer's law
-    transmittance *= exp(-absorption * depth_step);
+      // Beer's law
+      transmittance *= exp(-absorption * depth_step);
 
-    // Lighting
-    vec3 light_color = vec3(1.5, 0.8, 0.8);
-    vec3 light_position = vec3(5.0, 100.0, 10.0);
-    vec3 light_direction = normalize(light_position - sample_point);
-    float light_intensity = lightMarch(sample_point, light_direction, depth_step);
+      // Lighting
+      vec3 light_color = vec3(1.5, 0.8, 0.8);
+      vec3 light_position = vec3(5.0, 100.0, 10.0);
+      vec3 light_direction = normalize(light_position - sample_point);
+      float light_intensity = RECURSIVE > 0.0 ? lightMarch(sample_point, light_direction, depth_step) : 1.0;
 
-    // Update
-    color += transmittance * depth_step * absorption * light_intensity;
-    depth += depth_step;
+      // Update
+      color += transmittance * depth_step * absorption * light_color * light_intensity;
+      depth += depth_step;
+    }
+    else
+    {
+      depth = far;
+      break;
+    }
   }
   return vec4(color, transmittance);
-}
-
-// Assumes ray_origin is below clouds and ray_direction is upwards
-float cloudPlaneDistance(vec3 ray_origin, vec3 ray_direction)
-{
-  float distance_to_plane = (CLOUD_PLANE - ray_origin.y) / ray_direction.y;
-  return distance_to_plane;
 }
 
 void main() {
@@ -135,22 +130,28 @@ void main() {
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
   vec3 ray_origin = eye_position;
+  float ray_offset = 0.0;
 
-  // All clouds lie above this plane, so we start raymarching from there.
-  float distance_to_cloud_plane = cloudPlaneDistance(eye_position, ray_direction);
-  ray_origin += distance_to_cloud_plane * ray_direction;
+  float below_clouds = ray_origin.y < CLOUD_BOTTOM ? 1.0 : 0.0;
+  float looking_up = ray_direction.y > 0.0 ? 1.0 : 0.0;
+  ray_offset += looking_up * below_clouds * ((CLOUD_BOTTOM - ray_origin.y) / ray_direction.y);
+
+  float above_clouds = ray_origin.y > CLOUD_TOP ? 1.0 : 0.0;
+  float looking_down = ray_direction.y < 0.0 ? 1.0 : 0.0;
+  ray_offset += looking_down * above_clouds * ((CLOUD_TOP - ray_origin.y) / ray_direction.y);
+
+  ray_origin += ray_offset * ray_direction;
+
+  float fog = clamp((far - ray_offset) / (far - near), 0.0, 1.0);
 
   // Use blue noise to offset ray origin to reduce banding.
-  float blue_noise = texture(blue_noise_texture, 512.0 * vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).r;
-  blue_noise = fract(blue_noise * GOLDEN_RATIO_FRACT * time * 0.01);
+  float blue_noise = texture(blue_noise_texture, 50.0 * vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).r;
+  //blue_noise = fract(blue_noise * GOLDEN_RATIO_FRACT * time * 0.01);
   ray_origin += (blue_noise * STEP_SIZE) * ray_direction;
 
   // March the scene.
   vec4 result = volumeMarch(ray_origin, ray_direction, STEP_SIZE);
   
-  // Final color should be (background_color * out_color.a + out_color.rgb)
-  out_color = vec4(sky_color * result.w + result.rgb, 1.0);
-
-  // Hacky-depth, unnecessary if we assume clouds are rendered before other scene objects.
-  gl_FragDepth = ((1.0 / distance_to_cloud_plane) - inverse_near) / (inverse_far - inverse_near);
+  out_color = vec4(sky_color * result.a + result.rgb, 1.0);
+  out_color = vec4(mix(sky_color, out_color.rgb, fog), 1.0);
 }
