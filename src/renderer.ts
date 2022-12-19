@@ -15,7 +15,9 @@ export interface SceneContext {
   sunIntensity?: number;
 }
 
-export type RenderStep = (ctx: SceneContext, delta: DOMHighResTimeStamp) => void;
+export type RenderStep =
+  | ((ctx: SceneContext, delta: DOMHighResTimeStamp) => void)
+  | ((ctx: SceneContext) => void);
 
 
 export default class Renderer {
@@ -115,14 +117,14 @@ export default class Renderer {
    * Add a new “render” step—a function that will be called with appropriate context during the
    * “draw” part of every frame
    */
-  addRenderStep(step: (context: SceneContext) => void, beforeFrame = false) {
+  addRenderStep(step: RenderStep, beforeFrame = false) {
     if (beforeFrame) this.beforeFrameSteps.push(step);
     else this.renderSteps.push(step);
   }
 
 
   /** Remove a render step */
-  removeRenderStep(step: (context: SceneContext) => void, beforeFrame = false) {
+  removeRenderStep(step: RenderStep, beforeFrame = false) {
     const stepsArr = beforeFrame ? this.beforeFrameSteps : this.renderSteps;
     stepsArr.splice(stepsArr.indexOf(step), 1);
   }
