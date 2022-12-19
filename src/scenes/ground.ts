@@ -108,7 +108,6 @@ export function renderGround(ctx: SceneContext) {
     return;
   }
 
-  console.log('rendering ground');
   gl.useProgram(program);
 
   gl.activeTexture(gl.TEXTURE0);

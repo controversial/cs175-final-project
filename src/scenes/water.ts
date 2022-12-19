@@ -6,6 +6,7 @@ import { gl } from '../context';
 import type { SceneContext } from '../renderer';
 import { worleyTexture as cloudNoiseTexture } from './worley';
 import { mat4 } from 'gl-matrix';
+import WaveSim from '../compute/waves';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
 
@@ -27,11 +28,19 @@ const uCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture')
 const uSunDirection = gl.getUniformLocation(program, 'sun_direction');
 const uSunIntensity = gl.getUniformLocation(program, 'sun_intensity');
 
+const uRadius = gl.getUniformLocation(program, 'u_radius');
+const uWaterHeight = gl.getUniformLocation(program, 'u_waterHeight');
+const uWaterColor = gl.getUniformLocation(program, 'u_waterNormal');
+
 const modelMatrix = mat4.create();
 mat4.translate(modelMatrix, modelMatrix, [0, 2.9, 0]);
 
 let indexCount: number | undefined;
+let radius = 0;
 let loaded = false;
+
+const waves = new WaveSim();
+// window.waves = waves;
 
 async function fetchWater() {
   console.log('loading water');
@@ -82,16 +91,22 @@ function setupVAO(data: Awaited<ReturnType<typeof fetchWater>>) {
 
   while (positionIdx < data.positionData.length) {
     // Add 3 elements from position array
-    vertexData[positionIdx + normalIdx] = data.positionData[positionIdx];
-    vertexData[positionIdx + 1 + normalIdx] = data.positionData[positionIdx + 1];
-    vertexData[positionIdx + 2 + normalIdx] = data.positionData[positionIdx + 2];
+    const x = data.positionData[positionIdx];
+    const y = data.positionData[positionIdx + 1];
+    const z = data.positionData[positionIdx + 2];
+    vertexData[positionIdx + normalIdx] = x;
+    vertexData[positionIdx + 1 + normalIdx] = y;
+    vertexData[positionIdx + 2 + normalIdx] = z;
     positionIdx += 3;
+    // Update best radius
+    radius = Math.max(radius, x * x + z * z);
     // Add 3 elements from normal array
     vertexData[positionIdx + normalIdx] = data.normalData[normalIdx];
     vertexData[positionIdx + normalIdx + 1] = data.normalData[normalIdx + 1];
     vertexData[positionIdx + normalIdx + 2] = data.normalData[normalIdx + 2];
     normalIdx += 3;
   }
+  radius = Math.sqrt(radius);
 
   gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
 
@@ -107,6 +122,12 @@ export async function loadWater() {
   console.log('vertex count', indexCount);
   loaded = true;
 }
+
+
+export function updateWaves(_: SceneContext, timeDelta: DOMHighResTimeStamp) {
+  waves.step(Math.min(timeDelta / 1000, 1 / 30));
+}
+
 
 export function renderWater(ctx: SceneContext) {
   if (!loaded) {
@@ -128,6 +149,16 @@ export function renderWater(ctx: SceneContext) {
   gl.uniform3fv(uEyePosition, ctx.camera.eyePosition);
   gl.uniform3fv(uSunDirection, ctx.sunDirection ?? [0, 1, 0], 0, 3);
   gl.uniform1f(uSunIntensity, ctx.sunIntensity ?? 0.0);
+
+  gl.uniform1f(uRadius, radius);
+
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, waves.waterHeightTexture);
+  gl.uniform1i(uWaterHeight, 1);
+
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, waves.waterNormalTexture);
+  gl.uniform1i(uWaterColor, 2);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }
