@@ -65,11 +65,11 @@ vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
       transmittance *= exp(-absorption * depth_step);
 
       // Lighting
-      vec3 light_color = vec3(1.0, 1.0, 1.0) * sun_intensity;
+      vec3 sun_color = mix(vec3(.96, .55, .15), vec3(1.0, 1.0, 1.0), sun_intensity) * sun_intensity;
       float light_intensity = RECURSIVE > 0.0 ? lightMarch(sample_point, normalize(sun_direction), depth_step) : 1.0;
 
       // Update
-      color += transmittance * depth_step * absorption * light_color * light_intensity;
+      color += transmittance * depth_step * absorption * sun_color * light_intensity;
       depth += depth_step;
     }
     else
