@@ -7,12 +7,14 @@ import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { loadWater, renderWater } from './scenes/water';
 import { renderCloudsWithContext } from './scenes/cloud';
 import { renderSkyTexture, setupSkyTexture } from './scenes/sky-texture';
+import { setupWorleyTexture } from './scenes/worley';
 
 const renderer = new Renderer(canvas, gl);
 
+setupWorleyTexture(64);
 setupSkyTexture(renderer.sceneContext);
-renderer.addRenderStep(renderSkyTexture);
 
+renderer.addRenderStep(renderSkyTexture);
 renderer.addRenderStep(renderCloudsWithContext);
 Promise.all([loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderBirdbath);

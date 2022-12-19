@@ -1,13 +1,15 @@
+import { gl } from '../context';
 import { makeProgram as makeProgram } from '../shader';
 
 import vertexShaderSource from '../shaders/screenquad_vert.glsl';
 import fragmentShaderSource from '../shaders/worley_frag.glsl';
 
-export function makeWorleyTexture(gl: WebGL2RenderingContext, size: number) {
+export const worleyTexture = gl.createTexture();
+
+export function setupWorleyTexture(size: number) {
   // Initialize texture
-  const texture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_3D, texture);
+  gl.bindTexture(gl.TEXTURE_3D, worleyTexture);
   gl.texImage3D(
     gl.TEXTURE_3D,
     0,
@@ -32,11 +34,7 @@ export function makeWorleyTexture(gl: WebGL2RenderingContext, size: number) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
   // Initialize shader
-  const shader = makeProgram(gl, vertexShaderSource, fragmentShaderSource);
-  if (shader == null) {
-    gl.deleteTexture(texture);
-    return null;
-  }
+  const shader = makeProgram(gl, vertexShaderSource, fragmentShaderSource) as WebGLShader;
   const locZ = gl.getUniformLocation(shader, 'z');
   const locResolution = gl.getUniformLocation(shader, 'resolution');
 
@@ -62,7 +60,7 @@ export function makeWorleyTexture(gl: WebGL2RenderingContext, size: number) {
     gl.framebufferTextureLayer(
       gl.FRAMEBUFFER,
       gl.COLOR_ATTACHMENT0,
-      texture,
+      worleyTexture,
       0,
       i
     );
@@ -73,7 +71,5 @@ export function makeWorleyTexture(gl: WebGL2RenderingContext, size: number) {
   // Clean up
   gl.deleteProgram(shader);
   gl.deleteFramebuffer(framebuffer);
-
-  return texture;
 }
 

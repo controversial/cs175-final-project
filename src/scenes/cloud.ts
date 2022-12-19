@@ -1,7 +1,7 @@
 import cloudVertexShaderSource from '../shaders/screenquad_vert.glsl';
 import cloudFragmentShaderSource from '../shaders/cloud_frag.glsl';
 import { makeProgram } from '../shader';
-import { makeWorleyTexture } from './worley';
+import { worleyTexture as cloudNoiseTexture } from './worley';
 import { loadTexture } from '../texture';
 
 import { gl } from '../context';
@@ -10,7 +10,6 @@ import { vec3 } from 'gl-matrix';
 
 import { skyTexture } from './sky-texture';
 
-const cloudNoiseTexture = makeWorleyTexture(gl, 64);
 const blueNoiseTexture = loadTexture(gl, '../../blue_noise_256.png');
 
 // Setup cloud shader program

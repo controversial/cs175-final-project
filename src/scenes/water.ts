@@ -4,9 +4,7 @@ import { makeProgram } from '../shader';
 import { WebIO } from '@gltf-transform/core';
 import { gl } from '../context';
 import type { SceneContext } from '../renderer';
-import { makeWorleyTexture } from './worley';
-
-const cloudNoiseTexture = makeWorleyTexture(gl, 64);
+import { worleyTexture as cloudNoiseTexture } from './worley';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
 
