@@ -33,7 +33,7 @@ export default class Camera {
   static fastMoveSpeed = 1.0;
   static rotateSpeed = 0.5;
 
-  angles = vec2.create();
+  angles = vec2.fromValues(-10, 0);
   deltaAngle = vec2.create();
   velocity = vec3.create();
 
@@ -43,7 +43,7 @@ export default class Camera {
   upVector = vec3.create();
   lookVector = vec3.create();
 
-  initialEyePosition = vec3.fromValues(0, 3.7, 3);
+  initialEyePosition = vec3.fromValues(0, 4, 4.5);
   eyePosition = vec3.fromValues(this.initialEyePosition[0], this.initialEyePosition[1], this.initialEyePosition[2]);
   viewMatrix = mat4.create();
   projectionMatrix = mat4.create();
@@ -99,22 +99,16 @@ export default class Camera {
   updateRotation(timeDelta: number) {
     const framesElapsed = timeDelta / (1000 / 60); // number of 60fps frames since last update; used to normalize speed to different refresh rates
     vec2.add(this.angles, this.angles, vec2.multiply(this.deltaAngle, this.deltaAngle, [framesElapsed, framesElapsed]));
-    if (this.angles[0] > 88.0) {
-      this.angles[0] = 88.0;
-    }
-    if (this.angles[0] < -88.0) {
-      this.angles[0] = -88.0;
-    }
+    this.angles[0] = Math.min(this.angles[0], 88);
+    this.angles[0] = Math.max(this.angles[0], -88);
     quat.fromEuler(this.rotationQuat, this.angles[0], this.angles[1], 0);
     vec3.transformQuat(this.lookVector, [0, 0, -1], this.rotationQuat);
     vec3.transformQuat(this.rightVector, [-1, 0, 0], this.rotationQuat);
     vec3.set(this.upVector, 0, 1, 0);
-    // console.log([...this.lookVector]);
   }
 
   attachKeyControls() {
     const keysDown = new Set<string>();
-    // TODO: restore faster movement with shift
     const onKeyDown = (e: KeyboardEvent) => {
       keysDown.add(e.key.toLowerCase());
       if (e.shiftKey) keysDown.add('SHIFT');
