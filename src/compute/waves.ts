@@ -3,6 +3,7 @@
 
 import waveStepFrag from './wave-step.glsl';
 import dropFrag from './wave-drop.glsl';
+import normalFrag from './wave-normal.glsl';
 import noopVert from './noop-vert.glsl';
 
 import { gl } from '../context';
@@ -19,9 +20,11 @@ const emptyField = new Float32Array(WAVE_FIELD_SIZE_PX * WAVE_FIELD_SIZE_PX).fil
 
 export default class WaveSim {
   waterHeightTexture: WebGLTexture;
-  previousWaterHeightTexture: WebGLTexture;
+  waterNormalTexture: WebGLTexture;
+  private previousWaterHeightTexture: WebGLTexture;
   private tempTexture: WebGLTexture;
   program: WebGLProgram;
+  normalProgram: WebGLProgram;
   dropProgram: WebGLProgram;
   vao: WebGLVertexArrayObject;
   framebuffer: WebGLFramebuffer;
@@ -29,6 +32,8 @@ export default class WaveSim {
   constructor() {
     const ext = gl.getExtension('EXT_color_buffer_float');
     if (!ext) throw new Error('EXT_color_buffer_float not supported');
+    const ext2 = gl.getExtension('OES_texture_float_linear');
+    if (!ext2) throw new Error('OES_texture_float_linear not supported');
 
     // Create textures for wave height data (one for current and one for previous)
     const waterHeightTexture = gl.createTexture();
@@ -36,16 +41,25 @@ export default class WaveSim {
     this.waterHeightTexture = waterHeightTexture;
     gl.bindTexture(gl.TEXTURE_2D, this.waterHeightTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RED, gl.FLOAT, emptyField);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
     const previousWaterHeightTexture = gl.createTexture();
     if (!previousWaterHeightTexture) throw new Error('couldn’t create previous water height texture');
     this.previousWaterHeightTexture = previousWaterHeightTexture;
     gl.bindTexture(gl.TEXTURE_2D, this.previousWaterHeightTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RED, gl.FLOAT, emptyField);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+    // Create texture for water normal data
+    const waterNormalTexture = gl.createTexture();
+    if (!waterNormalTexture) throw new Error('couldn’t create water normal texture');
+    this.waterNormalTexture = waterNormalTexture;
+    gl.bindTexture(gl.TEXTURE_2D, this.waterNormalTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RGBA, gl.FLOAT, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
     // Create a temporary texture for rendering
     const tempTexture = gl.createTexture();
@@ -53,8 +67,8 @@ export default class WaveSim {
     this.tempTexture = tempTexture;
     gl.bindTexture(gl.TEXTURE_2D, this.tempTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RED, gl.FLOAT, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
     // Create framebuffer
     const framebuffer = gl.createFramebuffer();
@@ -69,6 +83,10 @@ export default class WaveSim {
     const dropProgram = makeProgram(gl, noopVert, dropFrag);
     if (!dropProgram) throw new Error('couldn’t create drop program');
     this.dropProgram = dropProgram;
+
+    const normalProgram = makeProgram(gl, noopVert, normalFrag);
+    if (!normalProgram) throw new Error('couldn’t create normal program');
+    this.normalProgram = normalProgram;
 
     // Create VAO
     const vao = gl.createVertexArray();
@@ -139,6 +157,9 @@ export default class WaveSim {
     // Unbind
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // Compute normals
+    this.computeNormals();
   }
 
   /** Add a drop at a given (0, 1) position on *both* the current and previous field */
@@ -183,6 +204,43 @@ export default class WaveSim {
     const temp2 = this.waterHeightTexture;
     this.waterHeightTexture = this.tempTexture;
     this.tempTexture = temp2;
+
+    // Unbind
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // Update normals
+    this.computeNormals();
+  }
+
+  /** Compute normal texture */
+  private computeNormals() {
+    const uHeight = gl.getUniformLocation(this.normalProgram, 'u_height'); // sampler2d
+    const uResolution = gl.getUniformLocation(this.normalProgram, 'u_resolution'); // vec2
+
+    gl.useProgram(this.normalProgram);
+    gl.bindVertexArray(this.vao);
+    gl.viewport(0, 0, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX);
+
+    // Pass uniforms
+    gl.uniform1i(uHeight, 0);
+    gl.uniform2f(uResolution, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX);
+
+    // Bind textures
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.waterHeightTexture);
+
+    // Set up framebuffer
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+    // Render to normal texture
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.waterNormalTexture, 0);
+
+    // Clear
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Draw
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     // Unbind
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);

@@ -27,7 +27,7 @@ gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
 
 // Get uniform locations
 const uHeight = gl.getUniformLocation(program, 'u_height');
-const uPrevHeight = gl.getUniformLocation(program, 'u_prevHeight');
+const uNormalMap = gl.getUniformLocation(program, 'u_normalMap');
 
 const waves = new WaveSim();
 
@@ -50,14 +50,14 @@ function wavesDemo() {
     gl.bindTexture(gl.TEXTURE_2D, waves.waterHeightTexture);
     gl.uniform1i(uHeight, 0);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, waves.previousWaterHeightTexture);
-    gl.uniform1i(uPrevHeight, 1);
+    gl.bindTexture(gl.TEXTURE_2D, waves.waterNormalTexture);
+    gl.uniform1i(uNormalMap, 1);
 
     // Draw
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     // Advance
-    waves.step(dt);
+    waves.step(Math.min(dt, 1 / 60));
 
     // On to the next frame
     requestAnimationFrame(draw);

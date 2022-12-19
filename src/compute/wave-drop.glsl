@@ -19,8 +19,6 @@ void main() {
 
   new_height = texture(u_height, vec2(0.5, 0.5)).r;
 
-  // new_height = 1.0 - length(dist);
-
   new_height = mix(
     texture(u_height, v_position).r, // outside circle, keep original height
     1.0 - length(dist), // inside circle, render “cone”
