@@ -8,7 +8,7 @@ import { loadTexture } from '../texture';
 import type { SceneContext } from '../renderer';
 
 import { gl } from '../context';
-import { bindSkyLookUpTextures, setSkyLookUpTableUniforms } from '../skyfunctions';
+//import { bindSkyLookUpTextures, setSkyLookUpTableUniforms } from '../skyfunctions';
 
 
 const program = makeProgram(gl, birdBathVSS, birdBathFSS) as WebGLProgram;
@@ -41,8 +41,8 @@ const vao = gl.createVertexArray();
 let loadedData: Awaited<ReturnType<typeof fetchBirdbath>> | null = null;
 
 // Sky
-const skyTextures = await bindSkyLookUpTextures(gl, program, gl.TEXTURE8, gl.TEXTURE9, gl.TEXTURE10);
-console.log(skyTextures);
+//const skyTextures = await bindSkyLookUpTextures(gl, program, gl.TEXTURE8, gl.TEXTURE9, gl.TEXTURE10);
+//console.log(skyTextures);
 
 // Texture loading from gltf
 function textureFromGltf(texture: Texture): WebGLTexture | null {
@@ -180,7 +180,7 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
-  setSkyLookUpTableUniforms(gl, program, skyTextures);
+  //setSkyLookUpTableUniforms(gl, program, skyTextures);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, loadedData.baseColorTexture);
