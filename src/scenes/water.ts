@@ -128,9 +128,13 @@ export async function loadWater() {
 
 
 export function updateWaves(_: SceneContext, timeDelta: DOMHighResTimeStamp) {
-  waves.step(Math.min(timeDelta / 1000, 1 / 60));
+  const delta = timeDelta / 1000;
+  const maxDelta = 1 / 120;
+  const steps = Math.round(delta / maxDelta);
+  for (let i = 0; i < Math.min(steps, 10); i++) {
+    waves.step(maxDelta);
+  }
 }
-
 
 export function renderWater(ctx: SceneContext) {
   if (!loaded) {
