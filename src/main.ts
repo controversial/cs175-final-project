@@ -21,7 +21,7 @@ Promise.all([loadGround(), loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderBirdbath);
   renderer.addRenderStep(updateWaves, true);
   renderer.addRenderStep(renderWater);
-  renderer.addClickListener(waterHandleClick);
+  renderer.addEventListener('click', waterHandleClick);
 });
 
 renderer.start();

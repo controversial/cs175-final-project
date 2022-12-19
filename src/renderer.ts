@@ -19,6 +19,12 @@ export type RenderStep =
   | ((ctx: SceneContext, delta: DOMHighResTimeStamp) => void)
   | ((ctx: SceneContext) => void);
 
+type EventListenersRecord = Partial<{
+  [K in keyof HTMLElementEventMap]: Map<
+    (ctx: SceneContext, e: HTMLElementEventMap[K]) => void,
+    (e: HTMLElementEventMap[K]) => void
+  >
+}>;
 
 export default class Renderer {
   canvas: HTMLCanvasElement;
@@ -27,7 +33,7 @@ export default class Renderer {
   camera: Camera;
   raf?: ReturnType<typeof requestAnimationFrame>;
   startTime?: DOMHighResTimeStamp;
-  clickListeners: Map<(ctx: SceneContext, e: MouseEvent) => void, (e: MouseEvent) => void> = new Map();
+  eventListeners: EventListenersRecord = {};
 
   // Rendering is split into “steps”
   beforeFrameSteps: RenderStep[] = [];
@@ -131,24 +137,40 @@ export default class Renderer {
   }
 
 
-  addClickListener(listener: (ctx: SceneContext, event: MouseEvent) => void) {
-    const wrappedListener = (e: MouseEvent) => listener(this.sceneContext, e);
-    this.clickListeners.set(listener, wrappedListener);
-    this.canvas.addEventListener('click', wrappedListener);
+  addEventListener<T extends keyof HTMLElementEventMap>(eventName: T, listener: (ctx: SceneContext, event: HTMLElementEventMap[T]) => void) {
+    const wrappedListener = (e: HTMLElementEventMap[T]) => listener(this.sceneContext, e);
+    let listeners = this.eventListeners[eventName];
+    if (!listeners) {
+      listeners = new Map();
+      this.eventListeners[eventName] = listeners;
+    }
+    listeners.set(listener, wrappedListener);
+    this.canvas.addEventListener(eventName, wrappedListener);
   }
 
-  removeClickLister(listener: (ctx: SceneContext, event: MouseEvent) => void) {
-    const wrappedListener = this.clickListeners.get(listener);
-    if (wrappedListener) {
-      this.canvas.removeEventListener('click', wrappedListener);
-      this.clickListeners.delete(listener);
-    }
+  removeEventListener<T extends keyof HTMLElementEventMap>(eventName: T, listener: (ctx: SceneContext, event: HTMLElementEventMap[T]) => void) {
+    const listeners = this.eventListeners[eventName];
+    if (!listeners) return;
+    const wrappedListener = listeners.get(listener);
+    if (!wrappedListener) return;
+    this.canvas.removeEventListener(eventName, wrappedListener);
+    listeners.delete(listener);
   }
 
   /** Stop everything */
   cleanup() {
     this.stop();
     this.resizeObserver.disconnect();
-    this.clickListeners.forEach((_, original) => this.removeClickLister(original));
+    // Get the “entry type” (a value of this.eventListeners) given its key as a string type
+    type EventEntryType<T> = T extends keyof HTMLElementEventMap ? [T, EventListenersRecord[T]] : never;
+    // Get event listener entries, strongly typed
+    const entries = Object.entries(this.eventListeners) as EventEntryType<keyof HTMLElementEventMap>[];
+
+    entries.forEach(([eventName, listeners]) => {
+      if (!listeners) return;
+      listeners.forEach((_, original) => {
+        this.removeEventListener(eventName, original as (ctx: SceneContext, event: HTMLElementEventMap[typeof eventName]) => void);
+      });
+    });
   }
 }
