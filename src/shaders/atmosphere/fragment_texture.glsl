@@ -239,8 +239,6 @@ void main() {
     }
 
     color.rgb = pow(vec3(1.0) - exp(-radiance / white_point * exposure), vec3(1.0 / 2.2));
-
-    float intensity = (transmittance + GetSkyRadiance(camera - earth_center, sun_direction, sun_direction, transmittance) * GetSolarRadiance()).r;
-    color.a = intensity;
+    color.a = 1.0;
 }
 

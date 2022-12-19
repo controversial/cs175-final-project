@@ -213,6 +213,10 @@ export function RenderSkyWithContext(ctx: SceneContext) {
 
   // This could easily be wrong
   ctx.sunDirection = [-mySunDirection[1], mySunDirection[2], mySunDirection[0]];
+  ctx.sunIntensity = Math.pow(Math.cos(zenithAngle * 2.0) + 1.0, 0.1);
+  if (zenithAngle > 1.5707) {
+    ctx.sunIntensity = 0.0;
+  }
 
   RenderSky(ctx.camera, mySunDirection);
 }

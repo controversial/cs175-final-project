@@ -1,12 +1,23 @@
 #version 300 es
 
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
-in vec2 v_position;
+in vec3 v_position;
+in vec3 v_normal;
+
+uniform sampler2D grass_texture;
+
+uniform float sun_intensity;
+uniform vec3 sun_direction;
 
 out vec4 out_color;
 
 void main()
 {
-  out_color = vec4(0.2, 0.8, 0.2, 1.0);
+  float diffuse = clamp(dot(v_normal, sun_direction), 0.0, 1.0);
+
+  vec4 tex_color = texture(grass_texture, v_position.xz);
+  out_color = vec4(tex_color.rgb * diffuse * sun_intensity, 1.0);
 }

@@ -23,7 +23,9 @@ const uModelMatrix = gl.getUniformLocation(program, 'model_matrix');
 const uViewMatrix = gl.getUniformLocation(program, 'view_matrix');
 const uProjectionMatrix = gl.getUniformLocation(program, 'projection_matrix');
 const uEyePosition = gl.getUniformLocation(program, 'eye_position');
-const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
+const uCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
+const uSunDirection = gl.getUniformLocation(program, 'sun_direction');
+const uSunIntensity = gl.getUniformLocation(program, 'sun_intensity');
 
 const modelMatrix = mat4.create();
 mat4.translate(modelMatrix, modelMatrix, [0, 2.9, 0]);
@@ -86,8 +88,8 @@ function setupVAO(data: Awaited<ReturnType<typeof fetchWater>>) {
     positionIdx += 3;
     // Add 3 elements from normal array
     vertexData[positionIdx + normalIdx] = data.normalData[normalIdx];
-    vertexData[positionIdx + normalIdx] = data.normalData[normalIdx + 1];
-    vertexData[positionIdx + normalIdx] = data.normalData[normalIdx + 2];
+    vertexData[positionIdx + normalIdx + 1] = data.normalData[normalIdx + 1];
+    vertexData[positionIdx + normalIdx + 2] = data.normalData[normalIdx + 2];
     normalIdx += 3;
   }
 
@@ -117,13 +119,15 @@ export function renderWater(ctx: SceneContext) {
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_3D, cloudNoiseTexture);
-  gl.uniform1i(uniformLocationCloudNoiseTexture, 0);
+  gl.uniform1i(uCloudNoiseTexture, 0);
 
   gl.uniformMatrix4fv(uModelMatrix, false, modelMatrix);
   gl.uniformMatrix4fv(uViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
   gl.uniform1f(uTime, ctx.time);
   gl.uniform3fv(uEyePosition, ctx.camera.eyePosition);
+  gl.uniform3fv(uSunDirection, ctx.sunDirection ?? [0, 1, 0], 0, 3);
+  gl.uniform1f(uSunIntensity, ctx.sunIntensity ?? 0.0);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }

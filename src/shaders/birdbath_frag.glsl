@@ -7,6 +7,7 @@ uniform sampler2D u_colorTexture;
 uniform sampler2D u_normalTexture;
 uniform vec3 u_lightPosition;
 uniform vec3 u_sunDirection;
+uniform float u_sunIntensity;
 
 in vec3 v_position; // world-space
 in vec4 v_color;
@@ -30,5 +31,5 @@ void main() {
 
   vec3 base_color = texture(u_colorTexture, v_texcoord).rgb;
 
-  outColor = vec4(base_color * diffuse, 1.0);
+  outColor = vec4(base_color * diffuse * u_sunIntensity, 1.0);
 }
