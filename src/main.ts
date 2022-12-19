@@ -8,18 +8,22 @@ import { loadWater, renderWater } from './scenes/water';
 import { renderCloudsWithContext } from './scenes/cloud';
 import { renderSkyTexture, setupSkyTexture } from './scenes/sky-texture';
 import { setupWorleyTexture } from './scenes/worley';
+import { setupGround, renderGround } from './scenes/ground';
 
 const renderer = new Renderer(canvas, gl);
 
 setupWorleyTexture(64);
 setupSkyTexture(renderer.sceneContext);
+setupGround();
 
+renderer.addRenderStep(renderGround);
 renderer.addRenderStep(renderSkyTexture);
 renderer.addRenderStep(renderCloudsWithContext);
 Promise.all([loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderBirdbath);
   renderer.addRenderStep(renderWater);
 });
+
 renderer.start();
 
 // Vite cleanup
