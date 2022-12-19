@@ -35,7 +35,11 @@ const waves = new WaveSim();
 function wavesDemo() {
   updateCanvasSize();
 
-  function draw() {
+  let previousTime = performance.now();
+  function draw(time: DOMHighResTimeStamp) {
+    const dt = (time - previousTime) / 1000;
+    previousTime = time;
+
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     gl.useProgram(program);
@@ -53,7 +57,7 @@ function wavesDemo() {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     // Advance
-    waves.step();
+    waves.step(dt);
 
     // On to the next frame
     requestAnimationFrame(draw);

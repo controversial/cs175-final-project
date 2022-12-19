@@ -10,9 +10,9 @@ import { makeProgram } from '../shader';
 
 export const WAVE_FIELD_SIZE_PX = 100;
 const DECAY = 0.005;
-const DT = 1;
+const DT = 60;
 const DX = 1;
-const C = 0.15; // wave propagation speed
+const C = 0.3; // wave propagation speed
 
 const emptyField = new Float32Array(WAVE_FIELD_SIZE_PX * WAVE_FIELD_SIZE_PX).fill(0);
 
@@ -87,7 +87,7 @@ export default class WaveSim {
   }
 
   /** Run the wave simulation for a step */
-  step() {
+  step(timeDelta: DOMHighResTimeStamp) {
     const uHeight = gl.getUniformLocation(this.program, 'u_height'); // sampler2d
     const uPrevHeight = gl.getUniformLocation(this.program, 'u_prevHeight'); // sampler2d
     const uResolution = gl.getUniformLocation(this.program, 'u_resolution'); // vec2
@@ -102,7 +102,7 @@ export default class WaveSim {
     gl.uniform1i(uHeight, 0);
     gl.uniform1i(uPrevHeight, 1);
     gl.uniform2f(uResolution, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX);
-    gl.uniform1f(uAlpha, (C * DT / DX) ** 2);
+    gl.uniform1f(uAlpha, (C * DT * timeDelta / DX) ** 2);
     gl.uniform1f(uDecay, DECAY);
 
     // Bind textures
