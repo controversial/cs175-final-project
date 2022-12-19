@@ -150,8 +150,6 @@ gl.uniform1i(irradianceTextureLocation, 2);
 gl.uniform3f(uEarthCenter, 0, 0, -6360000 / kLengthUnitInMeters);
 gl.uniform2f(uSunSize, Math.tan(kSunAngularRadius), Math.cos(kSunAngularRadius));
 
-
-
 /* eslint-disable function-paren-newline */
 const fragShaderTransform = mat3.fromValues(
   1.0, 0.0, 0.0,

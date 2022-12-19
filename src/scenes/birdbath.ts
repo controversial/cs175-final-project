@@ -8,6 +8,7 @@ import { loadTexture } from '../texture';
 import type { SceneContext } from '../renderer';
 
 import { gl } from '../context';
+import { bindSkyLookUpTextures, setSkyLookUpTableUniforms } from '../skyfunctions';
 
 
 const program = makeProgram(gl, birdBathVSS, birdBathFSS) as WebGLProgram;
@@ -36,6 +37,10 @@ const aTexcoord = gl.getAttribLocation(program, 'a_texcoord');
 // Model
 const vao = gl.createVertexArray();
 let loadedData: Awaited<ReturnType<typeof fetchBirdbath>> | null = null;
+
+// Sky
+const skyTextures = await bindSkyLookUpTextures(gl, program, gl.TEXTURE8, gl.TEXTURE9, gl.TEXTURE10);
+console.log(skyTextures);
 
 // Texture loading from gltf
 function textureFromGltf(texture: Texture): WebGLTexture | null {
@@ -156,6 +161,7 @@ function setupVAO(data: Awaited<ReturnType<typeof fetchBirdbath>>) {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data.indexData, gl.STATIC_DRAW);
 }
 
+
 export async function loadBirdbath() {
   const data = await fetchBirdbath();
   loadedData = data;
@@ -172,6 +178,8 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
+  setSkyLookUpTableUniforms(gl, program, skyTextures);
+
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, loadedData.baseColorTexture);
   gl.uniform1i(uColorTexture, 0);
@@ -185,7 +193,7 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
   gl.uniform1f(uTime, ctx.time);
   gl.uniform3fv(uLightPosition, ctx.camera.eyePosition, 0, 3);
-  gl.uniform3fv(uSunDirection, ctx.sunDirection ?? [0, 0, 0], 0, 3);
+  gl.uniform3fv(uSunDirection, ctx.sunDirection ?? [0, 1, 0], 0, 3);
 
 
   gl.drawElements(gl.TRIANGLES, loadedData.indexCount, gl.UNSIGNED_SHORT, 0);

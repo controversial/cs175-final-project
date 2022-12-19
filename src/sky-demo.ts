@@ -9,6 +9,8 @@ function updateCanvasSize() {
   canvas.height = rect.height * (window.devicePixelRatio ?? 1);
 }
 
+console.log(sunDirection);
+
 export function debugDrawSky(camera: Camera) {
   updateCanvasSize();
   camera.attachKeyControls();

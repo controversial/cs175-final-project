@@ -1,6 +1,9 @@
 #version 300 es
 precision mediump float;
 precision mediump sampler2D;
+precision highp sampler3D;
+
+#include "./atmosphere/skyfunctions.glsl"
 
 uniform float u_time;
 uniform sampler2D u_colorTexture;
@@ -29,6 +32,15 @@ void main() {
   diffuse = 0.2 + diffuse * 0.8;
 
   vec3 base_color = texture(u_colorTexture, v_texcoord).rgb;
+  vec3 sunDirection = vec3(-0.9355747103691101,
+                            0.23053064942359924,
+                            0.26749882102012634);
+  vec3 other_color = SkyGetLightAtPoint(v_position, normal, sunDirection.xzy, vec3(0.8));
+  if (other_color != vec3(1000)) {
+    outColor = vec4(SkyGetBackgroundSkyColor(normal), 1);
+    return;
+  }
+  base_color = other_color;
 
   outColor = vec4(base_color * diffuse, 1.0);
 }
