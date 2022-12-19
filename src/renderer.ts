@@ -168,7 +168,11 @@ export default class Renderer {
   }
 
 
-  addEventListener<T extends keyof HTMLElementEventMap>(eventName: T, listener: (ctx: SceneContext, event: HTMLElementEventMap[T]) => void) {
+  addEventListener<T extends keyof HTMLElementEventMap>(
+    eventName: T,
+    listener: (ctx: SceneContext, event: HTMLElementEventMap[T]) => void,
+    options?: Parameters<(typeof this.canvas)['addEventListener']>[2],
+  ) {
     const wrappedListener = (e: HTMLElementEventMap[T]) => listener(this.sceneContext, e);
     let listeners = this.eventListeners[eventName];
     if (!listeners) {
@@ -176,7 +180,7 @@ export default class Renderer {
       this.eventListeners[eventName] = listeners;
     }
     listeners.set(listener, wrappedListener);
-    this.canvas.addEventListener(eventName, wrappedListener);
+    this.canvas.addEventListener(eventName, wrappedListener, options);
   }
 
   removeEventListener<T extends keyof HTMLElementEventMap>(eventName: T, listener: (ctx: SceneContext, event: HTMLElementEventMap[T]) => void) {
