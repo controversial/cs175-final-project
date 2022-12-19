@@ -10,17 +10,24 @@ uniform vec3 u_lightPosition;
 in vec3 v_position; // world-space
 in vec4 v_color;
 in vec3 v_normal;
+in vec3 v_tangent;
+in vec3 v_bitangent;
 in vec2 v_texcoord;
 
 out vec4 outColor;
 
 void main() {
+  mat3 tbn = mat3(v_tangent, v_bitangent, v_normal);
+  vec3 light_direction = u_lightPosition - v_position;
+  light_direction *= tbn;
+  float light_dist = length(light_direction);
+  light_direction = normalize(light_direction);
 
-  vec3 normal = v_normal + texture(u_normalTexture, v_texcoord).rgb * 2.0 - 1.0;
-
-  vec3 light_direction = normalize(u_lightPosition - v_position);
-
+  vec3 normal = normalize(texture(u_normalTexture, v_texcoord).rgb * 2.0 - 1.0);
   float diffuse = clamp(dot(normal, light_direction), 0.0, 1.0);
+  diffuse = 0.2 + diffuse * 0.8;
 
-  outColor = vec4(texture(u_colorTexture, v_texcoord).rgb * diffuse, 1.0);
+  vec3 base_color = texture(u_colorTexture, v_texcoord).rgb;
+
+  outColor = vec4(base_color * diffuse, 1.0);
 }
