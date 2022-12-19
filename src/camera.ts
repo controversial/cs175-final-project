@@ -23,7 +23,7 @@ export default class Camera {
   projectionMatrix = mat4.create();
 
   aspect = 1.0;
-  fieldOfView = 60 * Math.PI / 180;
+  fieldOfView = 45 * Math.PI / 180;
 
   invEyePos = vec3.create();
   invRotation = mat4.create();
