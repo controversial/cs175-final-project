@@ -19,6 +19,7 @@ const uniformLocationProjectionMatrix = gl.getUniformLocation(program, 'projecti
 const uniformLocationGrassTexture = gl.getUniformLocation(program, 'grass_texture');
 const uniformLocationSunDirection = gl.getUniformLocation(program, 'sun_direction');
 const uniformLocationSunIntensity = gl.getUniformLocation(program, 'sun_intensity');
+const uniformLocationEyePosition = gl.getUniformLocation(program, 'eye_position');
 
 const grassTexture = loadTextureRgb(gl, '/grass.jpg');
 
@@ -116,6 +117,7 @@ export function renderGround(ctx: SceneContext) {
 
   gl.uniform1f(uniformLocationSunIntensity, ctx.sunIntensity ?? 0.0);
   gl.uniform3fv(uniformLocationSunDirection, ctx.sunDirection ?? [0, 1, 0], 0, 3);
+  gl.uniform3fv(uniformLocationEyePosition, ctx.camera.eyePosition, 0, 3);
   gl.uniformMatrix4fv(uniformLocationViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uniformLocationProjectionMatrix, false, ctx.camera.projectionMatrix);
 

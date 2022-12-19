@@ -17,8 +17,8 @@ setupSkyTexture(renderer.sceneContext);
 
 renderer.addRenderStep(renderSkyTexture);
 renderer.addRenderStep(renderCloudsWithContext);
-loadGround().then(() => renderer.addRenderStep(renderGround));
-Promise.all([loadBirdbath(), loadWater()]).then(() => {
+Promise.all([loadGround(), loadBirdbath(), loadWater()]).then(() => {
+  renderer.addRenderStep(renderGround);
   renderer.addRenderStep(renderBirdbath);
   renderer.addRenderStep(renderWater);
 });
