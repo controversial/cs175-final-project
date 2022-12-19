@@ -28,7 +28,7 @@ float linearFog(float dist)
 }
 
 float CalcExposure(vec3 sunDirection) {
-  return mix(2.0, 1.0, sunDirection.y * sunDirection.y);
+  return mix(2.2, 0.6, sunDirection.y * sunDirection.y);
 }
 
 void main() {
