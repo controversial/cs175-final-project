@@ -23,6 +23,9 @@ const uProjectionMatrix = gl.getUniformLocation(program, 'u_projectionMatrix');
 const uReflectionTexture = gl.getUniformLocation(program, 'u_reflectionTexture');
 const uEyePosition = gl.getUniformLocation(program, 'u_eyePosition');
 
+const uniformLocationWidth = gl.getUniformLocation(program, 'u_screenWidth');
+const uniformLocationHeight = gl.getUniformLocation(program, 'u_screenHeight');
+
 let indexCount: number | undefined;
 let loaded = false;
 
@@ -120,6 +123,8 @@ export function renderWater(ctx: SceneContext) {
   gl.uniform1f(uTime, ctx.time);
   gl.uniform1i(uReflectionTexture, 0);
   gl.uniform3fv(uEyePosition, ctx.camera.eyePosition);
+  gl.uniform1f(uniformLocationWidth, ctx.size[0]);
+  gl.uniform1f(uniformLocationHeight, ctx.size[1]);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }
