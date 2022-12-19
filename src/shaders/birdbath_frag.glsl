@@ -6,6 +6,7 @@ uniform float u_time;
 uniform sampler2D u_colorTexture;
 uniform sampler2D u_normalTexture;
 uniform vec3 u_lightPosition;
+uniform vec3 u_sunDirection;
 
 in vec3 v_position; // world-space
 in vec4 v_color;
@@ -18,7 +19,7 @@ out vec4 outColor;
 
 void main() {
   mat3 tbn = mat3(v_tangent, v_bitangent, v_normal);
-  vec3 light_direction = u_lightPosition - v_position;
+  vec3 light_direction = u_sunDirection;
   light_direction *= tbn;
   float light_dist = length(light_direction);
   light_direction = normalize(light_direction);

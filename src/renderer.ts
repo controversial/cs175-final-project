@@ -1,6 +1,7 @@
 import './styles/index.scss';
 
 import Camera from './camera';
+import type { vec3 } from 'gl-matrix';
 
 
 export interface SceneContext {
@@ -9,6 +10,8 @@ export interface SceneContext {
   camera: Camera;
   size: [number, number],
   time: number,
+
+  sunDirection?: vec3;
 }
 
 export type RenderStep = (ctx: SceneContext, delta: DOMHighResTimeStamp) => void;

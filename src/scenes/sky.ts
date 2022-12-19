@@ -2,7 +2,7 @@ import { gl } from '../context';
 import { makeProgram } from '../shader';
 import vertexShaderSource from '../shaders/atmosphere/vertex_shader.glsl';
 import fragmentShaderSource from '../shaders/atmosphere/fragment_texture.glsl';
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2, vec3, mat3 } from 'gl-matrix';
 import type Camera from '../camera';
 import { SceneContext } from '../renderer';
 
@@ -151,6 +151,18 @@ gl.uniform3f(uEarthCenter, 0, 0, -6360000 / kLengthUnitInMeters);
 gl.uniform2f(uSunSize, Math.tan(kSunAngularRadius), Math.cos(kSunAngularRadius));
 
 
+
+/* eslint-disable function-paren-newline */
+const fragShaderTransform = mat3.fromValues(
+  1.0, 0.0, 0.0,
+  0.0, 0.0, -1.0,
+  0.0, 1.0, 0.0
+);
+const transform = mat3.invert(mat3.create(), fragShaderTransform);
+console.log(mat3.str(transform));
+// x, z, -y
+// -y, z, x
+
 // main render function
 export function RenderSky(camera: Camera, dirToSun: vec3) {
   gl.useProgram(skyProgram);
@@ -191,12 +203,16 @@ export function RenderSky(camera: Camera, dirToSun: vec3) {
 }
 
 export function RenderSkyWithContext(ctx: SceneContext) {
-  const zenithAngle = ((ctx.time / 10000.0) % 3.5) - 1.5707;
+  const zenithAngle = ((ctx.time / 1000.0) % 3.5) - 1.5707;
   const azimuthAngle = 2.9;
   const mySunDirection = vec3.fromValues(
     Math.cos(azimuthAngle) * Math.sin(zenithAngle),
     Math.sin(azimuthAngle) * Math.sin(zenithAngle),
     Math.cos(zenithAngle),
   );
+
+  // This could easily be wrong
+  ctx.sunDirection = [-mySunDirection[1], mySunDirection[2], mySunDirection[0]];
+
   RenderSky(ctx.camera, mySunDirection);
 }
