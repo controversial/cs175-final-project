@@ -6,6 +6,7 @@ precision highp sampler3D;
 uniform float time;
 uniform float screen_width;
 uniform float screen_height;
+uniform vec3 sun_direction;
 
 // Camera parameters
 uniform float aspect_ratio;
@@ -24,7 +25,7 @@ uniform sampler2D sky_texture;
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
 const float STEP_SIZE = 10.0;
-const float RECURSIVE = 0.0;
+const float RECURSIVE = 1.0;
 
 const float CLOUD_PLANE = 10.0;
 const float CLOUD_BOTTOM = CLOUD_PLANE + 1.0;
@@ -35,6 +36,8 @@ const float CLOUD_SPEED = 0.00001;
 const float ABSORPTION = 0.3;
 
 const float GOLDEN_RATIO_FRACT = 0.61803398875;
+
+float sun_intensity = 1.0;
 
 out vec4 out_color;
 
@@ -105,10 +108,10 @@ vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
       transmittance *= exp(-absorption * depth_step);
 
       // Lighting
-      vec3 light_color = vec3(1.5, 0.8, 0.8);
-      vec3 light_position = vec3(5.0, 100.0, 10.0);
-      vec3 light_direction = normalize(light_position - sample_point);
-      float light_intensity = RECURSIVE > 0.0 ? lightMarch(sample_point, light_direction, depth_step) : 1.0;
+      vec3 light_color = vec3(1.0, 1.0, 1.0) * sun_intensity;
+      //vec3 light_position = vec3(5.0, 100.0, 10.0);
+      //vec3 light_direction = normalize(light_position - sample_point);
+      float light_intensity = RECURSIVE > 0.0 ? lightMarch(sample_point, normalize(sun_direction), depth_step) : 1.0;
 
       // Update
       color += transmittance * depth_step * absorption * light_color * light_intensity;
@@ -124,7 +127,9 @@ vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
 }
 
 void main() {
-  vec3 sky_color = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).rgb;
+  vec4 sky_sample = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height));
+  vec3 sky_color = sky_sample.rgb;
+  sun_intensity = sky_sample.a;
 
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);

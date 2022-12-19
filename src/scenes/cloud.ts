@@ -22,6 +22,7 @@ const uniformLocationAspectRatio = gl.getUniformLocation(program, 'aspect_ratio'
 const uniformLocationFieldOfView = gl.getUniformLocation(program, 'field_of_view');
 const uniformLocationEyePosition = gl.getUniformLocation(program, 'eye_position');
 const uniformLocationLookDirection = gl.getUniformLocation(program, 'look_direction');
+const uniformLocationSunDirection = gl.getUniformLocation(program, 'sun_direction');
 const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
 const uniformLocationBlueNoiseTexture = gl.getUniformLocation(program, 'blue_noise_texture');
 const uniformLocationSkyTexture = gl.getUniformLocation(program, 'sky_texture');
@@ -67,6 +68,15 @@ export function renderClouds(time: number, width: number, height: number, aspect
   gl.uniform1f(uniformLocationFieldOfView, fieldOfView);
   gl.uniform3fv(uniformLocationEyePosition, eyePosition, 0, 3);
   gl.uniform3fv(uniformLocationLookDirection, lookDirection, 0, 3);
+
+  const zenithAngle = ((time / 10000.0) % 3.5) - 1.5707;
+  const azimuthAngle = 2.9;
+  const sunDirection = vec3.fromValues(
+    Math.cos(azimuthAngle) * Math.sin(zenithAngle),
+    Math.sin(azimuthAngle) * Math.sin(zenithAngle),
+    Math.cos(zenithAngle),
+  );
+  gl.uniform3fv(uniformLocationSunDirection, sunDirection, 0, 3);
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }

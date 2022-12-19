@@ -1,7 +1,7 @@
 import Camera from './camera';
 
 import { canvas, gl } from './context';
-import { RenderSkyTexture, sunDirection } from './scenes/sky';
+import { RenderSky, sunDirection } from './scenes/sky';
 
 function updateCanvasSize() {
   const rect = canvas.getBoundingClientRect();
@@ -25,7 +25,7 @@ export function debugDrawSky(camera: Camera) {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    RenderSkyTexture(camera, sunDirection);
+    RenderSky(camera, sunDirection);
 
     requestAnimationFrame(draw);
   }
