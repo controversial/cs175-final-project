@@ -1,1 +1,1 @@
-Files here will be made available as static files from the server
+Assets that are loaded over the network.
