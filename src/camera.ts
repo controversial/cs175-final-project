@@ -18,7 +18,7 @@ export default class Camera {
   upVector = vec3.create();
   lookVector = vec3.create();
 
-  eyePosition = vec3.fromValues(0, 0, 1);
+  eyePosition = vec3.fromValues(0, 3.7, 3);
   viewMatrix = mat4.create();
   projectionMatrix = mat4.create();
 
