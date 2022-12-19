@@ -941,6 +941,7 @@ void GetSphereShadowInOut(vec3 view_direction, vec3 sun_direction, out float d_i
 
 vec3 SkyGetBackgroundSkyColor(vec3 eyePosition, vec3 rayDirection, vec3 sunDirection) {
     vec3 transmittance;
+    eyePosition.y = max(eye_position.y, 1.0);
     sunDirection = normalize(sunDirection.xzy);
     rayDirection = normalize(rayDirection.xzy);
     vec3 radiance = GetSkyRadiance(eyePosition.xzy - earth_center, rayDirection, 0.0, sunDirection, transmittance);
