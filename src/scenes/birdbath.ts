@@ -29,6 +29,7 @@ const uNormalTexture = gl.getUniformLocation(program, 'u_normalTexture');
 // attribute locations
 const aPosition = gl.getAttribLocation(program, 'a_position');
 const aNormal = gl.getAttribLocation(program, 'a_normal');
+const aTangent = gl.getAttribLocation(program, 'a_tangent');
 const aTexcoord = gl.getAttribLocation(program, 'a_texcoord');
 
 // Model
@@ -63,13 +64,15 @@ async function fetchBirdbath() {
   const primitive = mesh.listPrimitives()[0];
   const positionAccessor = primitive.getAttribute('POSITION');
   const normalAccessor = primitive.getAttribute('NORMAL');
+  const tangentAccessor = primitive.getAttribute('TANGENT');
   const texcoordAccessor = primitive.getAttribute('TEXCOORD_0');
-  if (!positionAccessor || !normalAccessor || !texcoordAccessor) throw new Error('missing attributes in birdbath model');
+  if (!positionAccessor || !normalAccessor || !tangentAccessor || !texcoordAccessor) throw new Error('missing attributes in birdbath model');
   const positionData = positionAccessor.getArray();
   const normalData = normalAccessor.getArray();
+  const tangentData = tangentAccessor.getArray();
   const texcoordData = texcoordAccessor.getArray();
-  if (positionAccessor.getType() !== 'VEC3' || normalAccessor.getType() !== 'VEC3' || texcoordAccessor.getType() !== 'VEC2') throw new Error('unexpected attribute types in birdbath model');
-  if (!positionData || !normalData || !texcoordData) throw new Error('could not get data for birdbath model');
+  if (positionAccessor.getType() !== 'VEC3' || normalAccessor.getType() !== 'VEC3' || tangentAccessor.getType() !== 'VEC4' || texcoordAccessor.getType() !== 'VEC2') throw new Error('unexpected attribute types in birdbath model');
+  if (!positionData || !normalData || !tangentData || !texcoordData) throw new Error('could not get data for birdbath model');
 
   // Get indices
   const indexAccessor = primitive.getIndices();
@@ -84,12 +87,13 @@ async function fetchBirdbath() {
   const baseColorImage = material.getBaseColorTexture();
   const normalImage = material.getNormalTexture();
   if (!baseColorImage || !normalImage) throw new Error('missing textures in birdbath model');
-  const baseColorTexture = await textureFromGltf(baseColorImage);
-  const normalTexture = await textureFromGltf(normalImage);
+  const baseColorTexture = textureFromGltf(baseColorImage);
+  const normalTexture = textureFromGltf(normalImage);
 
   return {
     positionData,
     normalData,
+    tangentData,
     texcoordData,
     indexData,
     baseColorTexture,
@@ -104,34 +108,43 @@ function setupVAO(data: Awaited<ReturnType<typeof fetchBirdbath>>) {
 
   gl.enableVertexAttribArray(aPosition);
   gl.enableVertexAttribArray(aNormal);
+  gl.enableVertexAttribArray(aTangent);
   gl.enableVertexAttribArray(aTexcoord);
-  // 3 floats for position, 3 floats for normal, 2 floats for texcoord
-  gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 8 * 4, 0 * 4);
-  gl.vertexAttribPointer(aNormal, 3, gl.FLOAT, false, 8 * 4, 3 * 4);
-  gl.vertexAttribPointer(aTexcoord, 2, gl.FLOAT, false, 8 * 4, 6 * 4);
+  // 3 floats for position, 3 floats for normal, 4 floats for tangent, 2 floats for texcoord
+  gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 12 * 4, 0 * 4);
+  gl.vertexAttribPointer(aNormal, 3, gl.FLOAT, false, 12 * 4, 3 * 4);
+  gl.vertexAttribPointer(aTangent, 4, gl.FLOAT, false, 12 * 4, 6 * 4);
+  gl.vertexAttribPointer(aTexcoord, 2, gl.FLOAT, false, 12 * 4, 10 * 4);
 
-  if (data.positionData.length / 3 !== data.normalData.length / 3 || data.positionData.length / 3 !== data.texcoordData.length / 2) throw new Error('unexpected data length');
+  if (data.positionData.length / 3 !== data.normalData.length / 3 || data.positionData.length / 3 !== data.tangentData.length / 4 || data.positionData.length / 3 !== data.texcoordData.length / 2) throw new Error('unexpected data length');
 
-  // Pack positionData, normalData, textureData together
-  const vertexData = new Float32Array(data.positionData.length + data.normalData.length + data.texcoordData.length);
+  // Pack positionData, normalData, tangentData, textureData together
+  const vertexData = new Float32Array(data.positionData.length + data.normalData.length + data.tangentData.length + data.texcoordData.length);
   let positionIdx = 0;
   let normalIdx = 0;
+  let tangentIdx = 0;
   let texcoordIdx = 0;
 
   while (positionIdx < data.positionData.length) {
     // Add 3 elements from position array
-    vertexData[positionIdx + normalIdx + texcoordIdx] = data.positionData[positionIdx];
-    vertexData[positionIdx + 1 + normalIdx + texcoordIdx] = data.positionData[positionIdx + 1];
-    vertexData[positionIdx + 2 + normalIdx + texcoordIdx] = data.positionData[positionIdx + 2];
+    vertexData[positionIdx + normalIdx + tangentIdx + texcoordIdx] = data.positionData[positionIdx];
+    vertexData[positionIdx + 1 + normalIdx + tangentIdx + texcoordIdx] = data.positionData[positionIdx + 1];
+    vertexData[positionIdx + 2 + normalIdx + tangentIdx + texcoordIdx] = data.positionData[positionIdx + 2];
     positionIdx += 3;
     // Add 3 elements from normal array
-    vertexData[positionIdx + normalIdx + texcoordIdx] = data.normalData[normalIdx];
-    vertexData[positionIdx + normalIdx + 1 + texcoordIdx] = data.normalData[normalIdx + 1];
-    vertexData[positionIdx + normalIdx + 2 + texcoordIdx] = data.normalData[normalIdx + 2];
+    vertexData[positionIdx + normalIdx + tangentIdx + texcoordIdx] = data.normalData[normalIdx];
+    vertexData[positionIdx + normalIdx + 1 + tangentIdx + texcoordIdx] = data.normalData[normalIdx + 1];
+    vertexData[positionIdx + normalIdx + 2 + tangentIdx + texcoordIdx] = data.normalData[normalIdx + 2];
     normalIdx += 3;
+    // Add 4 elements from tangent array
+    vertexData[positionIdx + normalIdx + tangentIdx + texcoordIdx] = data.tangentData[tangentIdx];
+    vertexData[positionIdx + normalIdx + tangentIdx + 1 + texcoordIdx] = data.tangentData[tangentIdx + 1];
+    vertexData[positionIdx + normalIdx + tangentIdx + 2 + texcoordIdx] = data.tangentData[tangentIdx + 2];
+    vertexData[positionIdx + normalIdx + tangentIdx + 3 + texcoordIdx] = data.tangentData[tangentIdx + 2];
+    tangentIdx += 4;
     // Add 2 elements from texcoord array
-    vertexData[positionIdx + normalIdx + texcoordIdx] = data.texcoordData[texcoordIdx];
-    vertexData[positionIdx + normalIdx + texcoordIdx + 1] = data.texcoordData[texcoordIdx + 1];
+    vertexData[positionIdx + normalIdx + tangentIdx + texcoordIdx] = data.texcoordData[texcoordIdx];
+    vertexData[positionIdx + normalIdx + tangentIdx + texcoordIdx + 1] = data.texcoordData[texcoordIdx + 1];
     texcoordIdx += 2;
   }
 
