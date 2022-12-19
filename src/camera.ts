@@ -6,6 +6,8 @@ function lerp(a: number, b: number, t: number) {
 
 export default class Camera {
   static moveSpeed = 0.05;
+  static slowMoveSpeed = 0.05;
+  static fastMoveSpeed = 1.0;
   static rotateSpeed = 0.5;
 
   angles = vec2.create();
@@ -18,7 +20,8 @@ export default class Camera {
   upVector = vec3.create();
   lookVector = vec3.create();
 
-  eyePosition = vec3.fromValues(0, 3.7, 3);
+  initialEyePosition = vec3.fromValues(0, 3.7, 3);
+  eyePosition = vec3.fromValues(this.initialEyePosition[0], this.initialEyePosition[1], this.initialEyePosition[2]);
   viewMatrix = mat4.create();
   projectionMatrix = mat4.create();
 
@@ -76,7 +79,11 @@ export default class Camera {
   attachKeyControls() {
     const keysDown = new Set<string>();
     // TODO: restore faster movement with shift
-    const onKeyDown = (e: KeyboardEvent) => { keysDown.add(e.key.toLowerCase()); };
+    const onKeyDown = (e: KeyboardEvent) => {
+      keysDown.add(e.key.toLowerCase());
+      if (e.shiftKey) keysDown.add('SHIFT');
+      else keysDown.delete('SHIFT');
+    };
     const onKeyUp = (e: KeyboardEvent) => { keysDown.delete(e.key.toLowerCase()); };
     addEventListener('keydown', onKeyDown);
     addEventListener('keyup', onKeyUp);
@@ -96,6 +103,17 @@ export default class Camera {
       const effectiveMovementAlpha = 1 - ((1 - movementAlpha) ** framesElapsed);
       const rotationAlpha = 0.2;
       const effectiveRotationAlpha = 1 - ((1 - rotationAlpha) ** framesElapsed);
+
+      if (keysDown.has('SHIFT')) {
+        Camera.moveSpeed = Camera.fastMoveSpeed;
+      } else {
+        Camera.moveSpeed = Camera.slowMoveSpeed;
+      }
+
+      if (keysDown.has('0')) {
+        this.eyePosition = vec3.fromValues(this.initialEyePosition[0], this.initialEyePosition[1], this.initialEyePosition[2]);
+      }
+
       // Forward/back movement
       if (keysDown.has('w')) forwardBackVelocity = lerp(forwardBackVelocity, Camera.moveSpeed, effectiveMovementAlpha);
       else if (keysDown.has('s')) forwardBackVelocity = lerp(forwardBackVelocity, -Camera.moveSpeed, effectiveMovementAlpha);
