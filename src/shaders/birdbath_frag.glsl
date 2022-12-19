@@ -3,7 +3,7 @@ precision mediump float;
 precision mediump sampler2D;
 precision highp sampler3D;
 
-#include "../test/shaders/skyfunctions.glsl"
+#include "skyfunctions.glsl"
 
 uniform float u_time;
 uniform sampler2D u_colorTexture;

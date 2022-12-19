@@ -19,7 +19,7 @@ float linearFog(float dist) {
   return clamp((90.0 - dist) / (90.0 - 50.0), 0.0, 1.0);
 }
 
-#include "../test/shaders/skyfunctions.glsl"
+#include "skyfunctions.glsl"
 
 float CalcExposure(vec3 sunDirection) {
   return mix(1.0, 0.3, sunDirection.y * sunDirection.y);

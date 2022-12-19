@@ -14,7 +14,7 @@ uniform sampler2D u_waterNormal;
 uniform float u_radius;
 
 #include "cloud_functions.glsl"
-#include "../test/shaders/skyfunctions.glsl"
+#include "skyfunctions.glsl"
 
 in vec3 v_position;
 in vec3 v_normal;

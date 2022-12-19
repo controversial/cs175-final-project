@@ -9,7 +9,7 @@ import { loadTextureRgb } from '../texture';
 
 import { WebIO } from '@gltf-transform/core';
 
-import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../skyfunctions';
 
 
 const vao = gl.createVertexArray();

@@ -7,7 +7,7 @@ import type { SceneContext } from '../renderer';
 import { worleyTexture as cloudNoiseTexture } from './worley';
 import { vec2, vec3, mat4 } from 'gl-matrix';
 import WaveSim from '../compute/waves';
-import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../skyfunctions';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
 

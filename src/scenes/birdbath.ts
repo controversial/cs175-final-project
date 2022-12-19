@@ -6,7 +6,7 @@ import { WebIO } from '@gltf-transform/core';
 import type { Texture } from '@gltf-transform/core';
 import { loadTexture } from '../texture';
 import type { SceneContext } from '../renderer';
-import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../skyfunctions';
 
 import { gl } from '../context';
 

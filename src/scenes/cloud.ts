@@ -8,7 +8,7 @@ import { gl } from '../context';
 import { SceneContext } from 'renderer';
 import { vec3 } from 'gl-matrix';
 
-import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../skyfunctions';
 
 const blueNoiseTexture = loadTextureNoMipmaps(gl, '../../blue_noise_256.png');
 

@@ -19,7 +19,7 @@ uniform sampler3D cloud_noise_texture;
 uniform sampler2D blue_noise_texture;
 
 #include "cloud_functions.glsl"
-#include "../test/shaders/skyfunctions.glsl"
+#include "skyfunctions.glsl"
 
 out vec4 out_color;
 
