@@ -124,7 +124,6 @@ const sun = {
     irradiance: irradianceTexture,
   },
 };
-
 sun;
 
 // uniform data
