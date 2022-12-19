@@ -1,4 +1,8 @@
 # Tufts CS175 Computer Graphics: Final Project
+Written by Luke, Christian and Jacob
+
+## Description
+This project is a WebGL application that renders a scene with volumetric clouds, a realistic atmosphere, and interactive water in real-time. The project was an attempt to explore the techniques and compromises required to render realistic scenes in real-time.
 
 ## Development
 1. Install a recent version of Node.js
