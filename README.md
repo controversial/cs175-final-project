@@ -26,6 +26,8 @@ Our approach to cloud raytracing is based on a [2015 SIGGRAPH presentation](http
 
 The birdbath model that appears in the scene is adapted from a [model](https://sketchfab.com/3d-models/bird-bath-da9098a83bec4768bf19b899577c9374) by Arthur Nicaise on Sketchfab.
 
+The grass texture is from Minecraft.
+
 Finally, we use two runtime JavaScript libraries in our code:
 
   1. [`gl-matrix`](https://www.npmjs.com/package/gl-matrix) for linear algebra and matrix operations.

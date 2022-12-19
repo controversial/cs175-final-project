@@ -1,8 +1,12 @@
 {
   "name": "final-project",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/controversial/cs175-final-project.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
