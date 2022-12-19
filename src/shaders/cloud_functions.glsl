@@ -44,7 +44,7 @@ float lightMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
   return transmittance;
 }
 
-// Assumes ray_origin is inside clouds and ray_direction is upwards
+// Assumes ray_origin is inside clouds
 vec4 volumeMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
 {
   float transmittance = 1.0;
