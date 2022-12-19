@@ -16,6 +16,7 @@ const DX = 1;
 const C = 0.3; // wave propagation speed
 
 const emptyField = new Float32Array(WAVE_FIELD_SIZE_PX * WAVE_FIELD_SIZE_PX).fill(0);
+const emptyRgbaField = new Float32Array(WAVE_FIELD_SIZE_PX * WAVE_FIELD_SIZE_PX * 4).fill(0);
 
 
 export default class WaveSim {
@@ -43,6 +44,8 @@ export default class WaveSim {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RED, gl.FLOAT, emptyField);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     const previousWaterHeightTexture = gl.createTexture();
     if (!previousWaterHeightTexture) throw new Error('couldn’t create previous water height texture');
@@ -51,15 +54,19 @@ export default class WaveSim {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RED, gl.FLOAT, emptyField);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     // Create texture for water normal data
     const waterNormalTexture = gl.createTexture();
     if (!waterNormalTexture) throw new Error('couldn’t create water normal texture');
     this.waterNormalTexture = waterNormalTexture;
     gl.bindTexture(gl.TEXTURE_2D, this.waterNormalTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RGBA, gl.FLOAT, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RGBA, gl.FLOAT, emptyRgbaField);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     // Create a temporary texture for rendering
     const tempTexture = gl.createTexture();
@@ -69,6 +76,8 @@ export default class WaveSim {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, WAVE_FIELD_SIZE_PX, WAVE_FIELD_SIZE_PX, 0, gl.RED, gl.FLOAT, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     // Create framebuffer
     const framebuffer = gl.createFramebuffer();
@@ -106,6 +115,8 @@ export default class WaveSim {
 
   /** Run the wave simulation for a step */
   step(timeDelta: DOMHighResTimeStamp) {
+    gl.blendFunc(gl.ONE, gl.ONE);
+
     const uHeight = gl.getUniformLocation(this.program, 'u_height'); // sampler2d
     const uPrevHeight = gl.getUniformLocation(this.program, 'u_prevHeight'); // sampler2d
     const uResolution = gl.getUniformLocation(this.program, 'u_resolution'); // vec2
@@ -164,6 +175,8 @@ export default class WaveSim {
 
   /** Add a drop at a given (0, 1) position on *both* the current and previous field */
   addDrop(x: number, y: number, radius: number) {
+    gl.blendFunc(gl.ONE, gl.ONE);
+
     const uDropPosition = gl.getUniformLocation(this.dropProgram, 'u_dropPosition'); // vec2
     const uDropRadius = gl.getUniformLocation(this.dropProgram, 'u_dropRadius'); // float
     const uResolution = gl.getUniformLocation(this.dropProgram, 'u_resolution'); // vec2
