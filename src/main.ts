@@ -4,7 +4,7 @@ import Renderer from './renderer';
 import { canvas, gl } from './context';
 
 import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
-import { loadWater, renderWater, updateWaves } from './scenes/water';
+import { loadWater, renderWater, updateWaves, waterHandleClick } from './scenes/water';
 import { renderCloudsWithContext } from './scenes/cloud';
 import { renderSkyTexture, setupSkyTexture } from './scenes/sky-texture';
 import { setupWorleyTexture } from './scenes/worley';
@@ -22,6 +22,7 @@ Promise.all([loadGround(), loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderBirdbath);
   renderer.addRenderStep(updateWaves, true);
   renderer.addRenderStep(renderWater);
+  renderer.addClickListener(waterHandleClick);
 });
 
 renderer.start();

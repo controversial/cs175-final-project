@@ -36,5 +36,5 @@ function updateCanvasSize() {
   const rect = canvas.getBoundingClientRect();
   canvas.width = rect.width * (window.devicePixelRatio ?? 1);
   canvas.height = rect.height * (window.devicePixelRatio ?? 1);
-  camera.updateAspect(canvas.width, canvas.height);
+  camera.updateSize(canvas.width, canvas.height);
 }

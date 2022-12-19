@@ -1,8 +1,31 @@
-import { vec3, mat4, quat, vec2 } from 'gl-matrix';
+import { vec3, vec4, mat4, quat, vec2 } from 'gl-matrix';
+
+
+export class Ray {
+  origin = vec3.create();
+  direction = vec3.create();
+  constructor(origin: vec3, direction: vec3) {
+    this.origin = origin;
+    this.direction = direction;
+  }
+
+  transform(m: mat4) {
+    const originVec4 = vec4.fromValues(this.origin[0], this.origin[1], this.origin[2], 1);
+    const directionVec4 = vec4.fromValues(this.direction[0], this.direction[1], this.direction[2], 0);
+    const localOrigin = vec4.transformMat4(vec4.create(), originVec4, m);
+    const localDirection = vec4.transformMat4(vec4.create(), directionVec4, m);
+    return new Ray(
+      vec3.fromValues(localOrigin[0], localOrigin[1], localOrigin[2]),
+      vec3.fromValues(localDirection[0], localDirection[1], localDirection[2]),
+    );
+  }
+}
+
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
+
 
 export default class Camera {
   static moveSpeed = 0.05;
@@ -25,8 +48,10 @@ export default class Camera {
   viewMatrix = mat4.create();
   projectionMatrix = mat4.create();
 
-  aspect = 1.0;
-  fieldOfView = 45 * Math.PI / 180;
+  width: number;
+  height: number;
+  canvas: HTMLCanvasElement;
+  fieldOfView = 45 * Math.PI / 180; // radians
 
   invEyePos = vec3.create();
   invRotation = mat4.create();
@@ -35,14 +60,24 @@ export default class Camera {
   farPlane = 100;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.updateAspect(canvas.width, canvas.height);
+    this.canvas = canvas;
+    this.width = canvas.width;
+    this.height = canvas.height;
+    this.updateAspect();
     this.update(0);
   }
 
-  updateAspect(width: number, height: number) {
-    this.aspect = width / height;
+  updateSize(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+    this.updateAspect();
+  }
+
+  updateAspect() {
     mat4.perspective(this.projectionMatrix, this.fieldOfView, this.aspect, this.nearPlane, this.farPlane);
   }
+
+  get aspect() { return this.width / this.height; }
 
   update(timeDelta: number) {
     this.updatePosition(timeDelta);
@@ -74,6 +109,7 @@ export default class Camera {
     vec3.transformQuat(this.lookVector, [0, 0, -1], this.rotationQuat);
     vec3.transformQuat(this.rightVector, [-1, 0, 0], this.rotationQuat);
     vec3.set(this.upVector, 0, 1, 0);
+    // console.log([...this.lookVector]);
   }
 
   attachKeyControls() {
@@ -150,5 +186,26 @@ export default class Camera {
       removeEventListener('keydown', onKeyDown);
       removeEventListener('keyup', onKeyUp);
     };
+  }
+
+  getRayFromScreenCoords(x: number, y: number) {
+    const rect = this.canvas.getBoundingClientRect();
+    const xt = (x - rect.left) / rect.width;
+    const yt = (y - rect.top) / rect.height;
+
+    const H = this.nearPlane * Math.tan(this.fieldOfView / 2);
+    const W = H * this.aspect;
+
+    const a = -W + 2.0 * W * xt;
+    const b = H - 2.0 * H * yt;
+
+    // camera space -> world space
+    const invViewMatrix = mat4.invert(mat4.create(), this.viewMatrix);
+
+    const rayDirection = vec4.transformMat4(vec4.create(), vec4.fromValues(a, b, -this.nearPlane, 0), invViewMatrix);
+    return new Ray(
+      this.eyePosition,
+      vec3.normalize(vec3.create(), vec3.fromValues(rayDirection[0], rayDirection[1], rayDirection[2])),
+    );
   }
 }

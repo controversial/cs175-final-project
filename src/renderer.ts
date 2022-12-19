@@ -27,6 +27,7 @@ export default class Renderer {
   camera: Camera;
   raf?: ReturnType<typeof requestAnimationFrame>;
   startTime?: DOMHighResTimeStamp;
+  clickListeners: Map<(ctx: SceneContext, e: MouseEvent) => void, (e: MouseEvent) => void> = new Map();
 
   // Rendering is split into “steps”
   beforeFrameSteps: RenderStep[] = [];
@@ -48,7 +49,7 @@ export default class Renderer {
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * (window.devicePixelRatio ?? 1);
     this.canvas.height = rect.height * (window.devicePixelRatio ?? 1);
-    this.camera.updateAspect(this.width, this.height);
+    this.camera.updateSize(this.width, this.height);
   }
   get width() { return this.canvas.width; }
   get height() { return this.canvas.height; }
@@ -130,9 +131,24 @@ export default class Renderer {
   }
 
 
+  addClickListener(listener: (ctx: SceneContext, event: MouseEvent) => void) {
+    const wrappedListener = (e: MouseEvent) => listener(this.sceneContext, e);
+    this.clickListeners.set(listener, wrappedListener);
+    this.canvas.addEventListener('click', wrappedListener);
+  }
+
+  removeClickLister(listener: (ctx: SceneContext, event: MouseEvent) => void) {
+    const wrappedListener = this.clickListeners.get(listener);
+    if (wrappedListener) {
+      this.canvas.removeEventListener('click', wrappedListener);
+      this.clickListeners.delete(listener);
+    }
+  }
+
   /** Stop everything */
   cleanup() {
     this.stop();
     this.resizeObserver.disconnect();
+    this.clickListeners.forEach((_, original) => this.removeClickLister(original));
   }
 }

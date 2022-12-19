@@ -5,7 +5,7 @@ import { WebIO } from '@gltf-transform/core';
 import { gl } from '../context';
 import type { SceneContext } from '../renderer';
 import { worleyTexture as cloudNoiseTexture } from './worley';
-import { mat4 } from 'gl-matrix';
+import { vec2, vec3, mat4 } from 'gl-matrix';
 import WaveSim from '../compute/waves';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
@@ -161,4 +161,29 @@ export function renderWater(ctx: SceneContext) {
   gl.uniform1i(uWaterColor, 2);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
+}
+
+export function waterHandleClick(ctx: SceneContext, event: MouseEvent) {
+  const ray = ctx.camera.getRayFromScreenCoords(event.clientX, event.clientY);
+
+  const inverseModelMatrix = mat4.create();
+  mat4.invert(inverseModelMatrix, modelMatrix);
+  const localRay = ray.transform(inverseModelMatrix);
+  // Find intersection with XZ plane
+  // ray.origin.y + ray.direction.y * t = 0  =>  t = -ray.origin.y / ray.direction.y
+  const t = -localRay.origin[1] / localRay.direction[1];
+
+  const intersection = vec3.create();
+  vec3.scaleAndAdd(intersection, localRay.origin, localRay.direction, t);
+  // Check if intersection is within radius
+  const inRadius = (intersection[0] ** 2 + intersection[2] ** 2 <= (radius * 0.975) ** 2);
+
+  if (t < 0 || !inRadius) {
+    console.log('miss');
+    return;
+  }
+
+  const coords = vec2.fromValues(intersection[0], intersection[2]);
+  const uv = vec2.scaleAndAdd(vec2.create(), vec2.fromValues(0.5, 0.5), coords, (1 / radius) * 0.5);
+  waves.addDrop(uv[0], uv[1], 0.1);
 }
