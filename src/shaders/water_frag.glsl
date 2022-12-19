@@ -1,12 +1,16 @@
 #version 300 es
-precision mediump float;
-precision mediump sampler2D;
 
-uniform vec3 u_lightPosition;
-uniform vec3 u_eyePosition;
-uniform sampler2D u_reflectionTexture;
-uniform float u_screenWidth;
-uniform float u_screenHeight;
+precision mediump float;
+precision mediump sampler3D;
+
+uniform float time;
+uniform vec3 sun_direction;
+uniform vec3 eye_position;
+uniform sampler3D cloud_noise_texture;
+
+float sun_intensity = 1.0;
+
+#include "cloud_functions.glsl"
 
 in float should_draw;
 in vec3 v_position;
@@ -19,8 +23,11 @@ void main() {
     discard;
   }
 
-  vec2 uv = vec2(gl_FragCoord.x / u_screenWidth, -gl_FragCoord.y / u_screenHeight);
-  vec3 tex_color = texture(u_reflectionTexture, uv).xyz;
+  vec3 ray_origin = v_position;
+  vec3 ray_direction = normalize(reflect(v_position - eye_position, vec3(0.0, 1.0, 0.0)));
 
-  outColor = vec4(tex_color, 0.2);
+  vec3 sky_color = vec3(0.2, 0.2, 0.8); // TODO: correct sky color
+
+  vec3 color = marchClouds(sky_color, v_position, ray_direction, 0.1);
+  outColor = vec4(color, 0.4);
 }

@@ -4,7 +4,9 @@ import { makeProgram } from '../shader';
 import { WebIO } from '@gltf-transform/core';
 import { gl } from '../context';
 import type { SceneContext } from '../renderer';
-import { renderReflectionTexture, reflectionTexture } from './reflection';
+import { makeWorleyTexture } from './worley';
+
+const cloudNoiseTexture = makeWorleyTexture(gl, 64);
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
 
@@ -17,14 +19,11 @@ const aPosition = gl.getAttribLocation(program, 'a_position');
 const aNormal = gl.getAttribLocation(program, 'a_normal');
 
 // uniform locations
-const uTime = gl.getUniformLocation(program, 'u_time');
-const uViewMatrix = gl.getUniformLocation(program, 'u_viewMatrix');
-const uProjectionMatrix = gl.getUniformLocation(program, 'u_projectionMatrix');
-const uReflectionTexture = gl.getUniformLocation(program, 'u_reflectionTexture');
-const uEyePosition = gl.getUniformLocation(program, 'u_eyePosition');
-
-const uniformLocationWidth = gl.getUniformLocation(program, 'u_screenWidth');
-const uniformLocationHeight = gl.getUniformLocation(program, 'u_screenHeight');
+const uTime = gl.getUniformLocation(program, 'time');
+const uViewMatrix = gl.getUniformLocation(program, 'view_matrix');
+const uProjectionMatrix = gl.getUniformLocation(program, 'projection_matrix');
+const uEyePosition = gl.getUniformLocation(program, 'eye_position');
+const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
 
 let indexCount: number | undefined;
 let loaded = false;
@@ -110,21 +109,17 @@ export function renderWater(ctx: SceneContext) {
     return;
   }
 
-  renderReflectionTexture(ctx);
-
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
+  gl.bindTexture(gl.TEXTURE_3D, cloudNoiseTexture);
+  gl.uniform1i(uniformLocationCloudNoiseTexture, 0);
 
   gl.uniformMatrix4fv(uViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
   gl.uniform1f(uTime, ctx.time);
-  gl.uniform1i(uReflectionTexture, 0);
   gl.uniform3fv(uEyePosition, ctx.camera.eyePosition);
-  gl.uniform1f(uniformLocationWidth, ctx.size[0]);
-  gl.uniform1f(uniformLocationHeight, ctx.size[1]);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }
