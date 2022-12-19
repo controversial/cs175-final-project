@@ -25,6 +25,7 @@ const uProjectionMatrix = gl.getUniformLocation(program, 'u_projectionMatrix');
 const uTime = gl.getUniformLocation(program, 'u_time');
 const uLightPosition = gl.getUniformLocation(program, 'u_lightPosition');
 const uSunDirection = gl.getUniformLocation(program, 'u_sunDirection');
+const uSunIntensity = gl.getUniformLocation(program, 'u_sunIntensity');
 const uColorTexture = gl.getUniformLocation(program, 'u_colorTexture');
 const uNormalTexture = gl.getUniformLocation(program, 'u_normalTexture');
 
@@ -194,6 +195,7 @@ export function renderBirdbath(ctx: SceneContext) {
   gl.uniform1f(uTime, ctx.time);
   gl.uniform3fv(uLightPosition, ctx.camera.eyePosition, 0, 3);
   gl.uniform3fv(uSunDirection, ctx.sunDirection ?? [0, 1, 0], 0, 3);
+  gl.uniform1f(uSunIntensity, ctx.sunIntensity ?? 0.0);
 
 
   gl.drawElements(gl.TRIANGLES, loadedData.indexCount, gl.UNSIGNED_SHORT, 0);

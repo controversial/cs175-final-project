@@ -6,6 +6,8 @@ function lerp(a: number, b: number, t: number) {
 
 export default class Camera {
   static moveSpeed = 0.05;
+  static slowMoveSpeed = 0.05;
+  static fastMoveSpeed = 1.0;
   static rotateSpeed = 0.5;
 
   angles = vec2.create();
@@ -18,12 +20,13 @@ export default class Camera {
   upVector = vec3.create();
   lookVector = vec3.create();
 
-  eyePosition = vec3.fromValues(0, 0, 1);
+  initialEyePosition = vec3.fromValues(0, 3.7, 3);
+  eyePosition = vec3.fromValues(this.initialEyePosition[0], this.initialEyePosition[1], this.initialEyePosition[2]);
   viewMatrix = mat4.create();
   projectionMatrix = mat4.create();
 
   aspect = 1.0;
-  fieldOfView = 60 * Math.PI / 180;
+  fieldOfView = 45 * Math.PI / 180;
 
   invEyePos = vec3.create();
   invRotation = mat4.create();
@@ -61,6 +64,12 @@ export default class Camera {
   updateRotation(timeDelta: number) {
     const framesElapsed = timeDelta / (1000 / 60); // number of 60fps frames since last update; used to normalize speed to different refresh rates
     vec2.add(this.angles, this.angles, vec2.multiply(this.deltaAngle, this.deltaAngle, [framesElapsed, framesElapsed]));
+    if (this.angles[0] > 88.0) {
+      this.angles[0] = 88.0;
+    }
+    if (this.angles[0] < -88.0) {
+      this.angles[0] = -88.0;
+    }
     quat.fromEuler(this.rotationQuat, this.angles[0], this.angles[1], 0);
     vec3.transformQuat(this.lookVector, [0, 0, -1], this.rotationQuat);
     vec3.transformQuat(this.rightVector, [-1, 0, 0], this.rotationQuat);
@@ -70,7 +79,11 @@ export default class Camera {
   attachKeyControls() {
     const keysDown = new Set<string>();
     // TODO: restore faster movement with shift
-    const onKeyDown = (e: KeyboardEvent) => { keysDown.add(e.key.toLowerCase()); };
+    const onKeyDown = (e: KeyboardEvent) => {
+      keysDown.add(e.key.toLowerCase());
+      if (e.shiftKey) keysDown.add('SHIFT');
+      else keysDown.delete('SHIFT');
+    };
     const onKeyUp = (e: KeyboardEvent) => { keysDown.delete(e.key.toLowerCase()); };
     addEventListener('keydown', onKeyDown);
     addEventListener('keyup', onKeyUp);
@@ -90,6 +103,17 @@ export default class Camera {
       const effectiveMovementAlpha = 1 - ((1 - movementAlpha) ** framesElapsed);
       const rotationAlpha = 0.2;
       const effectiveRotationAlpha = 1 - ((1 - rotationAlpha) ** framesElapsed);
+
+      if (keysDown.has('SHIFT')) {
+        Camera.moveSpeed = Camera.fastMoveSpeed;
+      } else {
+        Camera.moveSpeed = Camera.slowMoveSpeed;
+      }
+
+      if (keysDown.has('0')) {
+        this.eyePosition = vec3.fromValues(this.initialEyePosition[0], this.initialEyePosition[1], this.initialEyePosition[2]);
+      }
+
       // Forward/back movement
       if (keysDown.has('w')) forwardBackVelocity = lerp(forwardBackVelocity, Camera.moveSpeed, effectiveMovementAlpha);
       else if (keysDown.has('s')) forwardBackVelocity = lerp(forwardBackVelocity, -Camera.moveSpeed, effectiveMovementAlpha);

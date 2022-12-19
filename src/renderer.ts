@@ -12,6 +12,7 @@ export interface SceneContext {
   time: number,
 
   sunDirection?: vec3;
+  sunIntensity?: number;
 }
 
 export type RenderStep = (ctx: SceneContext, delta: DOMHighResTimeStamp) => void;

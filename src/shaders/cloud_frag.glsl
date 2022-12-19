@@ -7,8 +7,7 @@ uniform float time;
 uniform float screen_width;
 uniform float screen_height;
 uniform vec3 sun_direction;
-
-float sun_intensity = 1.0;
+uniform float sun_intensity;
 
 // Camera parameters
 uniform float aspect_ratio;
@@ -42,9 +41,7 @@ vec3 rayDirection(vec2 frag_coord)
 }
 
 void main() {
-  vec4 sky_sample = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height));
-  vec3 sky_color = sky_sample.rgb;
-  sun_intensity = sky_sample.a;
+  vec3 sky_color = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).rgb;
 
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);

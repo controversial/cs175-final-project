@@ -2,7 +2,7 @@ import cloudVertexShaderSource from '../shaders/screenquad_vert.glsl';
 import cloudFragmentShaderSource from '../shaders/cloud_frag.glsl';
 import { makeProgram } from '../shader';
 import { worleyTexture as cloudNoiseTexture } from './worley';
-import { loadTexture } from '../texture';
+import { loadTextureNoMipmaps } from '../texture';
 
 import { gl } from '../context';
 import { SceneContext } from 'renderer';
@@ -10,7 +10,7 @@ import { vec3 } from 'gl-matrix';
 
 import { skyTexture } from './sky-texture';
 
-const blueNoiseTexture = loadTexture(gl, '../../blue_noise_256.png');
+const blueNoiseTexture = loadTextureNoMipmaps(gl, '../../blue_noise_256.png');
 
 // Setup cloud shader program
 const program = makeProgram(gl, cloudVertexShaderSource, cloudFragmentShaderSource) as WebGLProgram;
@@ -22,6 +22,7 @@ const uniformLocationFieldOfView = gl.getUniformLocation(program, 'field_of_view
 const uniformLocationEyePosition = gl.getUniformLocation(program, 'eye_position');
 const uniformLocationLookDirection = gl.getUniformLocation(program, 'look_direction');
 const uniformLocationSunDirection = gl.getUniformLocation(program, 'sun_direction');
+const uniformLocationSunIntensity = gl.getUniformLocation(program, 'sun_intensity');
 const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
 const uniformLocationBlueNoiseTexture = gl.getUniformLocation(program, 'blue_noise_texture');
 const uniformLocationSkyTexture = gl.getUniformLocation(program, 'sky_texture');
@@ -42,7 +43,7 @@ gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 gl.enableVertexAttribArray(0);
 gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-export function renderClouds(time: number, width: number, height: number, aspectRatio: number, fieldOfView: number, eyePosition: vec3, lookDirection: vec3) {
+export function renderClouds(time: number, width: number, height: number, aspectRatio: number, fieldOfView: number, eyePosition: vec3, lookDirection: vec3, sunDirection: vec3, sunIntensity: number) {
   // console.log('rendering clouds');
 
   gl.useProgram(program);
@@ -67,19 +68,12 @@ export function renderClouds(time: number, width: number, height: number, aspect
   gl.uniform1f(uniformLocationFieldOfView, fieldOfView);
   gl.uniform3fv(uniformLocationEyePosition, eyePosition, 0, 3);
   gl.uniform3fv(uniformLocationLookDirection, lookDirection, 0, 3);
-
-  const zenithAngle = ((time / 10000.0) % 3.5) - 1.5707;
-  const azimuthAngle = 2.9;
-  const sunDirection = vec3.fromValues(
-    Math.cos(azimuthAngle) * Math.sin(zenithAngle),
-    Math.sin(azimuthAngle) * Math.sin(zenithAngle),
-    Math.cos(zenithAngle),
-  );
   gl.uniform3fv(uniformLocationSunDirection, sunDirection, 0, 3);
+  gl.uniform1f(uniformLocationSunIntensity, sunIntensity);
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 export function renderCloudsWithContext(ctx: SceneContext) {
-  renderClouds(ctx.time, ctx.size[0], ctx.size[1], ctx.camera.aspect, ctx.camera.fieldOfView, ctx.camera.eyePosition, ctx.camera.lookVector);
+  renderClouds(ctx.time, ctx.size[0], ctx.size[1], ctx.camera.aspect, ctx.camera.fieldOfView, ctx.camera.eyePosition, ctx.camera.lookVector, ctx.sunDirection ?? [0, 1, 0], ctx.sunIntensity ?? 0);
 }
