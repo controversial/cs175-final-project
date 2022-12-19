@@ -15,9 +15,14 @@ uniform vec3 eye_position;
 
 out vec4 out_color;
 
-float linearFog(float dist)
-{
+float linearFog(float dist) {
   return clamp((90.0 - dist) / (90.0 - 50.0), 0.0, 1.0);
+}
+
+#include "../test/shaders/skyfunctions.glsl"
+
+float CalcExposure(vec3 sunDirection) {
+  return mix(0.5, 4.0, -sqrt(sunDirection.y) + 1.0);
 }
 
 void main()
@@ -30,5 +35,8 @@ void main()
 
   vec3 sun_color = mix(vec3(.96, .55, .15), vec3(1.0, 1.0, 1.0), sun_intensity) * sun_intensity;
 
-  out_color = vec4(tex_color.rgb * diffuse * sun_color, fog);
+  vec3 light_color = SkyGetLightAtPoint(v_position, v_normal, sun_direction, tex_color.rgb);
+  light_color = CorrectGamma(light_color, CalcExposure(sun_direction));
+
+  out_color = vec4(max(light_color, vec3(tex_color) * 0.1), fog);
 }

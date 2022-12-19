@@ -119,7 +119,7 @@ export function bindSkyLookUpTextures(
 export function setSkyLookUpUniforms(
   gl: WebGL2RenderingContext,
   program: WebGLProgram,
-  textures: Awaited<ReturnType<typeof bindSkyLookUpTextures>>,
+  textures: ReturnType<typeof bindSkyLookUpTextures>,
 ) {
   const transmittance = textures.transmittance;
   const scattering = textures.scattering;

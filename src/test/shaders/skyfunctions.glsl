@@ -1,9 +1,5 @@
 // #version 300 es
 
-precision highp float;
-precision highp sampler2D;
-precision highp sampler3D;
-
 // in vec3 view_ray;
 // out vec4 color;
 
@@ -939,9 +935,13 @@ void GetSphereShadowInOut(vec3 view_direction, vec3 sun_direction, out float d_i
     }
 }
 
+float SkyGetExposure(vec3 sunDirection) {
+  return 1.0 - sunDirection.z;
+}
+
 vec3 SkyGetBackgroundSkyColor(vec3 eyePosition, vec3 rayDirection, vec3 sunDirection) {
     vec3 transmittance;
-    eyePosition.y = max(eye_position.y, 1.0);
+    eyePosition.y = max(eyePosition.y, 1.0);
     sunDirection = normalize(sunDirection.xzy);
     rayDirection = normalize(rayDirection.xzy);
     vec3 radiance = GetSkyRadiance(eyePosition.xzy - earth_center, rayDirection, 0.0, sunDirection, transmittance);
@@ -952,9 +952,9 @@ vec3 SkyGetBackgroundSkyColor(vec3 eyePosition, vec3 rayDirection, vec3 sunDirec
 }
 
 vec3 SkyGetLightAtPoint(vec3 point, vec3 normal, vec3 sunDirection, vec3 albedo) {
-    // point = point.xzy;
-    // normal = normal.xzy;
-    // sunDirection = -sunDirection.xzy;
+    point = point.xzy;
+    normal = normalize(normal.xzy);
+    sunDirection = normalize(sunDirection.xzy);
     vec3 sky_irradiance;
     vec3 sun_irradiance = GetSunAndSkyIrradiance(point - earth_center, normal, sunDirection, sky_irradiance);
     vec3 irradiance = albedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
@@ -969,6 +969,10 @@ vec4 CorrectGamma(vec3 in_color) {
   color.rgb = pow(vec3(1.0) - exp(-in_color / white_point * exposure), vec3(1.0 / 2.2));
   color.a = 1.0;
   return color;
+}
+
+vec3 CorrectGamma(vec3 in_color, float color_exposure) {
+  return pow(vec3(1.0) - exp(-in_color / white_point * color_exposure), vec3(1.0 / 2.2));
 }
 
 // void main() {

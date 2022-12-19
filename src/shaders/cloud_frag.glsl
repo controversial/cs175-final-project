@@ -40,13 +40,17 @@ vec3 rayDirection(vec2 frag_coord)
   return normalize(s);
 }
 
+float CalcExposure(vec3 sunDirection) {
+  return mix(10.0, 30.0, pow(1.0 - sunDirection.y, 2.0));
+} 
+
 void main() {
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
   vec3 ray_origin = eye_position;
  
   vec3 sky_color = SkyGetBackgroundSkyColor(eye_position, ray_direction, sun_direction);
-  sky_color = CorrectGamma(sky_color).rgb;
+  sky_color = CorrectGamma(sky_color, CalcExposure(sun_direction));
 
   // Use blue noise to offset ray origin to reduce banding.
   float blue_noise = texture(blue_noise_texture, 50.0 * vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).r;

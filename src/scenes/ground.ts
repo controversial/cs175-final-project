@@ -9,6 +9,9 @@ import { loadTextureRgb } from '../texture';
 
 import { WebIO } from '@gltf-transform/core';
 
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
+
+
 const vao = gl.createVertexArray();
 const vertexBuffer = gl.createBuffer();
 const indexBuffer = gl.createBuffer();
@@ -25,6 +28,8 @@ const grassTexture = loadTextureRgb(gl, '/grass.jpg');
 
 let indexCount: number | undefined;
 let loaded = false;
+
+const skyTables = bindSkyLookUpTextures(gl, program, gl.TEXTURE11, gl.TEXTURE12, gl.TEXTURE13);
 
 async function fetchGround() {
   console.log('loading ground');
@@ -101,7 +106,6 @@ export async function loadGround() {
   loaded = true;
 }
 
-
 export function renderGround(ctx: SceneContext) {
   if (!loaded) {
     console.warn('Ground not loaded yet');
@@ -119,6 +123,8 @@ export function renderGround(ctx: SceneContext) {
   gl.uniform3fv(uniformLocationEyePosition, ctx.camera.eyePosition, 0, 3);
   gl.uniformMatrix4fv(uniformLocationViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uniformLocationProjectionMatrix, false, ctx.camera.projectionMatrix);
+
+  setSkyLookUpUniforms(gl, program, skyTables);
 
   gl.bindVertexArray(vao);
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
