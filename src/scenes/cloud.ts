@@ -9,6 +9,8 @@ import { SceneContext } from 'renderer';
 import { vec3 } from 'gl-matrix';
 
 import { skyTexture } from './sky-texture';
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
+
 
 const blueNoiseTexture = loadTextureNoMipmaps(gl, '../../blue_noise_256.png');
 
@@ -26,6 +28,10 @@ const uniformLocationSunIntensity = gl.getUniformLocation(program, 'sun_intensit
 const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
 const uniformLocationBlueNoiseTexture = gl.getUniformLocation(program, 'blue_noise_texture');
 const uniformLocationSkyTexture = gl.getUniformLocation(program, 'sky_texture');
+
+// Sky
+const skyTextures = bindSkyLookUpTextures(gl, program, gl.TEXTURE8, gl.TEXTURE9, gl.TEXTURE10);
+console.log(skyTextures);
 
 // Setup buffers
 const vao = gl.createVertexArray() as WebGLVertexArrayObject;
@@ -48,6 +54,8 @@ export function renderClouds(time: number, width: number, height: number, aspect
 
   gl.useProgram(program);
   gl.bindVertexArray(vao);
+
+  setSkyLookUpUniforms(gl, program, skyTextures);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_3D, cloudNoiseTexture);

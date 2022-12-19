@@ -20,6 +20,7 @@ uniform sampler2D blue_noise_texture;
 uniform sampler2D sky_texture;
 
 #include "cloud_functions.glsl"
+#include "../test/shaders/skyfunctions.glsl"
 
 out vec4 out_color;
 
@@ -41,11 +42,15 @@ vec3 rayDirection(vec2 frag_coord)
 }
 
 void main() {
-  vec3 sky_color = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).rgb;
+  //vec3 sky_color = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).rgb;
+
 
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
   vec3 ray_origin = eye_position;
+ 
+  vec3 sky_color = SkyGetBackgroundSkyColor(eye_position, ray_direction, sun_direction);
+  sky_color = CorrectGamma(sky_color).rgb;
 
   // Use blue noise to offset ray origin to reduce banding.
   float blue_noise = texture(blue_noise_texture, 50.0 * vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).r;
