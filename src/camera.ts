@@ -61,6 +61,12 @@ export default class Camera {
   updateRotation(timeDelta: number) {
     const framesElapsed = timeDelta / (1000 / 60); // number of 60fps frames since last update; used to normalize speed to different refresh rates
     vec2.add(this.angles, this.angles, vec2.multiply(this.deltaAngle, this.deltaAngle, [framesElapsed, framesElapsed]));
+    if (this.angles[0] > 88.0) {
+      this.angles[0] = 88.0;
+    }
+    if (this.angles[0] < -88.0) {
+      this.angles[0] = -88.0;
+    }
     quat.fromEuler(this.rotationQuat, this.angles[0], this.angles[1], 0);
     vec3.transformQuat(this.lookVector, [0, 0, -1], this.rotationQuat);
     vec3.transformQuat(this.rightVector, [-1, 0, 0], this.rotationQuat);
