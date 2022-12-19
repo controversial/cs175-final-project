@@ -1,3 +1,4 @@
+// intended to be #included in other shader files
 
 const int MAX_STEPS = 8;
 const int MAX_LIGHT_STEPS = 2;
@@ -28,7 +29,7 @@ float cloudDensity(vec3 sample_point)
 
 float lightMarch(vec3 ray_origin, vec3 ray_direction, float depth_step)
 {
-  float transmittance = 1.0; 
+  float transmittance = 1.0;
   float depth = 0.0;
   for (int i = 0; i < MAX_LIGHT_STEPS; i++)
   {
@@ -94,7 +95,7 @@ float rayOffset(vec3 ray_origin, vec3 ray_direction)
   ray_offset += looking_down * above_clouds * ((CLOUD_TOP - ray_origin.y) / ray_direction.y);
 
   return ray_offset;
-} 
+}
 
 float linearFog(float ray_offset)
 {

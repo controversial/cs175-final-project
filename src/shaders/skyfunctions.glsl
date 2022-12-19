@@ -1,4 +1,4 @@
-// #version 300 es
+// intended to be #included in other shader files
 
 // in vec3 view_ray;
 // out vec4 color;
@@ -204,7 +204,7 @@ vec2 GetTransmittanceTextureUvFromRMu(const in AtmosphereParameters atmosphere, 
 
 void GetRMuFromTransmittanceTextureUv(
         const in AtmosphereParameters atmosphere,
-        const in vec2 uv, 
+        const in vec2 uv,
         out float r, out float mu) {
     float x_mu = GetUnitRangeFromTextureCoord(uv.x, TRANSMITTANCE_TEXTURE_WIDTH);
     float x_r = GetUnitRangeFromTextureCoord(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT);
@@ -242,7 +242,7 @@ vec3 GetTransmittance(
     float mu_d = ClampCosine((r * mu + d) / r_d);
     if (ray_r_mu_intersects_ground) {
         return min(
-            GetTransmittanceToTopAtmosphereBoundary(atmosphere, transmittance_texture, r_d, -mu_d) 
+            GetTransmittanceToTopAtmosphereBoundary(atmosphere, transmittance_texture, r_d, -mu_d)
             / GetTransmittanceToTopAtmosphereBoundary(atmosphere, transmittance_texture, r, -mu),
             vec3(1.0));
     } else {
@@ -337,7 +337,7 @@ vec4 GetScatteringTextureUvwzFromRMuMuSNu(
         float d = -r_mu - SafeSqrt(discriminant);
         float d_min = r - atmosphere.bottom_radius;
         float d_max = rho;
-        u_mu = 0.5 - 0.5 * GetTextureCoordFromUnitRange(d_max == d_min ? 0.0 : 
+        u_mu = 0.5 - 0.5 * GetTextureCoordFromUnitRange(d_max == d_min ? 0.0 :
                (d - d_min) / (d_max - d_min), SCATTERING_TEXTURE_MU_SIZE / 2);
     } else {
         float d = -r_mu + SafeSqrt(discriminant + H * H);
@@ -405,7 +405,7 @@ void GetRMuMuSNuFromScatteringTextureFragCoord(
     );
     float frag_coord_nu = floor(frag_coord.x / float(SCATTERING_TEXTURE_MU_S_SIZE));
     float frag_coord_mu_s = mod(frag_coord.x, float(SCATTERING_TEXTURE_MU_S_SIZE));
-    vec4 uvwz = vec4(frag_coord_nu, frag_coord_mu_s, frag_coord.y, frag_coord.z) 
+    vec4 uvwz = vec4(frag_coord_nu, frag_coord_mu_s, frag_coord.y, frag_coord.z)
                 / SCATTERING_TEXTURE_SIZE;
     GetRMuMuSNuFromScatteringTextureUvwz(atmosphere, uvwz, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
     nu = clamp(nu, mu * mu_s - sqrt((1.0 - mu * mu) * (1.0 - mu_s * mu_s)),
@@ -436,7 +436,7 @@ vec3 GetScattering(
     float lerp = tex_coord_x - tex_x;
     vec3 uvw0 = vec3((tex_x + uvwz.y) / float(SCATTERING_TEXTURE_NU_SIZE), uvwz.zw);
     vec3 uvw1 = vec3((tex_x + 1.0 + uvwz.y) / float(SCATTERING_TEXTURE_NU_SIZE), uvwz.zw);
-    return vec3(texture(scattering_texture, uvw0) * (1.0 - lerp) 
+    return vec3(texture(scattering_texture, uvw0) * (1.0 - lerp)
            + texture(scattering_texture, uvw1) * lerp);
 }
 
@@ -502,7 +502,7 @@ vec3 ComputeScatteringDensity(
         vec3 incident_radiance = GetScattering(atmosphere, single_rayleigh_scattering_texture, single_mie_scattering_texture, multiple_scattering_texture, r, omega_i.z, mu_s, nu1, ray_r_theta_intersects_ground, scattering_order - 1);
         vec3 ground_normal = normalize(zenith_direction * r + omega_i * distance_to_ground);
         vec3 ground_irradiance = GetIrradiance(atmosphere, irradiance_texture, atmosphere.bottom_radius, dot(ground_normal, omega_s));
-        incident_radiance += transmittance_to_ground 
+        incident_radiance += transmittance_to_ground
                              * ground_albedo * (1.0 / (PI * sr))
                              * ground_irradiance;
         float nu2 = dot(omega, omega_i);
@@ -553,7 +553,7 @@ vec3 ComputeScatteringDensityTexture(
     float nu;
     bool ray_r_mu_intersects_ground;
     GetRMuMuSNuFromScatteringTextureFragCoord(atmosphere, frag_coord, r, mu, mu_s, nu, ray_r_mu_intersects_ground);
-    return ComputeScatteringDensity(atmosphere, transmittance_texture, 
+    return ComputeScatteringDensity(atmosphere, transmittance_texture,
         single_rayleigh_scattering_texture, single_mie_scattering_texture,
         multiple_scattering_texture, irradiance_texture,
         r, mu, mu_s, nu, scattering_order
