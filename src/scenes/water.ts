@@ -33,7 +33,7 @@ const uSunIntensity = gl.getUniformLocation(program, 'sun_intensity');
 
 const uRadius = gl.getUniformLocation(program, 'u_radius');
 const uWaterHeight = gl.getUniformLocation(program, 'u_waterHeight');
-const uWaterColor = gl.getUniformLocation(program, 'u_waterNormal');
+const uWaterNormal = gl.getUniformLocation(program, 'u_waterNormal');
 
 const modelMatrix = mat4.create();
 mat4.translate(modelMatrix, modelMatrix, [0, 2.9, 0]);
@@ -128,7 +128,7 @@ export async function loadWater() {
 
 
 export function updateWaves(_: SceneContext, timeDelta: DOMHighResTimeStamp) {
-  waves.step(Math.min(timeDelta / 1000, 1 / 30));
+  waves.step(Math.min(timeDelta / 1000, 1 / 60));
 }
 
 
@@ -163,7 +163,7 @@ export function renderWater(ctx: SceneContext) {
 
   gl.activeTexture(gl.TEXTURE2);
   gl.bindTexture(gl.TEXTURE_2D, waves.waterNormalTexture);
-  gl.uniform1i(uWaterColor, 2);
+  gl.uniform1i(uWaterNormal, 2);
 
   gl.drawElements(gl.TRIANGLES, indexCount ?? 0, gl.UNSIGNED_SHORT, 0);
 }

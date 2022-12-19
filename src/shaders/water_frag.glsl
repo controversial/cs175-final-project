@@ -31,19 +31,23 @@ float linearFog2(float dist)
 }
 
 void main() {
-  mat3 tbn = mat3(v_tangent, v_bitangent, v_normal);
-  mat3 inv_tbn = inverse(tbn);
+  vec3 dx = dFdx(v_position);
+  vec3 dy = dFdy(v_position);
+  vec3 normal = normalize(cross(dx, dy));
 
-  vec3 normal = texture(u_waterNormal, v_uv).xyz;
+  //mat3 tbn = mat3(v_tangent, v_bitangent, v_normal);
+  //mat3 inv_tbn = inverse(tbn);
+
+  //vec3 normal = texture(u_waterNormal, v_uv).xyz;
 
   vec3 ray_origin = v_position;
-  vec3 ray_direction = normalize(reflect(v_position - eye_position, normal * inv_tbn));
+  vec3 ray_direction = normalize(reflect(v_position - eye_position, normal));
 
   vec3 sky_color = SkyGetBackgroundSkyColor(eye_position, ray_direction, sun_direction);
   sky_color = CorrectGamma(sky_color).rgb;
 
   float fog = linearFog2(length(eye_position - v_position));
-  vec3 color = marchClouds(sky_color, v_position, ray_direction, 0.1 * fog);
+  vec3 color = marchClouds(sky_color, v_position, ray_direction, 0.1);
 
-  outColor = vec4(color, 0.4);
+  outColor = vec4(color, 0.4 * fog);
 }
