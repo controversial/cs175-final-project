@@ -7,8 +7,11 @@ import type { SceneContext } from '../renderer';
 import { worleyTexture as cloudNoiseTexture } from './worley';
 import { vec2, vec3, mat4 } from 'gl-matrix';
 import WaveSim from '../compute/waves';
+import { bindSkyLookUpTextures, setSkyLookUpUniforms } from '../test/skyfunctions';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
+
+const skyTextures = bindSkyLookUpTextures(gl, program, gl.TEXTURE7, gl.TEXTURE8, gl.TEXTURE9);
 
 const vao = gl.createVertexArray();
 const vertexBuffer = gl.createBuffer();
@@ -137,6 +140,8 @@ export function renderWater(ctx: SceneContext) {
 
   gl.useProgram(program);
   gl.bindVertexArray(vao);
+
+  setSkyLookUpUniforms(gl, program, skyTextures);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_3D, cloudNoiseTexture);

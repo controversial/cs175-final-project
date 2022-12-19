@@ -17,7 +17,6 @@ uniform vec3 look_direction;
 
 uniform sampler3D cloud_noise_texture;
 uniform sampler2D blue_noise_texture;
-uniform sampler2D sky_texture;
 
 #include "cloud_functions.glsl"
 #include "../test/shaders/skyfunctions.glsl"
@@ -42,9 +41,6 @@ vec3 rayDirection(vec2 frag_coord)
 }
 
 void main() {
-  //vec3 sky_color = texture(sky_texture, vec2(gl_FragCoord.x / screen_width, gl_FragCoord.y / screen_height)).rgb;
-
-
   // Ray parameters.
   vec3 ray_direction = rayDirection(gl_FragCoord.xy);
   vec3 ray_origin = eye_position;

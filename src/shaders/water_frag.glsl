@@ -14,6 +14,7 @@ uniform sampler2D u_waterNormal;
 uniform float u_radius;
 
 #include "cloud_functions.glsl"
+#include "../test/shaders/skyfunctions.glsl"
 
 in vec3 v_position;
 in vec3 v_normal;
@@ -38,8 +39,8 @@ void main() {
   vec3 ray_origin = v_position;
   vec3 ray_direction = normalize(reflect(v_position - eye_position, normal * inv_tbn));
 
-  vec3 sun_color = mix(vec3(.96, .55, .15), vec3(1.0, 1.0, 1.0), sun_intensity) * sun_intensity;
-  vec3 sky_color = vec3(0.1, 0.4, 0.8) * sun_color; // TODO: correct sky color
+  vec3 sky_color = SkyGetBackgroundSkyColor(eye_position, ray_direction, sun_direction);
+  sky_color = CorrectGamma(sky_color).rgb;
 
   float fog = linearFog2(length(eye_position - v_position));
   vec3 color = marchClouds(sky_color, v_position, ray_direction, 0.1 * fog);

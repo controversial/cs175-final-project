@@ -6,16 +6,15 @@ import { canvas, gl } from './context';
 import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { loadWater, renderWater, updateWaves, waterHandleClick } from './scenes/water';
 import { renderCloudsWithContext } from './scenes/cloud';
-import { renderSkyTexture, setupSkyTexture } from './scenes/sky-texture';
 import { setupWorleyTexture } from './scenes/worley';
 import { loadGround, renderGround } from './scenes/ground';
+import { updateSunParameters } from './scenes/sky';
 
 const renderer = new Renderer(canvas, gl);
 
 setupWorleyTexture(64);
-setupSkyTexture(renderer.sceneContext);
 
-renderer.addRenderStep(renderSkyTexture);
+renderer.addRenderStep(updateSunParameters);
 renderer.addRenderStep(renderCloudsWithContext);
 Promise.all([loadGround(), loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderGround);
