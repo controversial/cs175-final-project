@@ -3,7 +3,6 @@ import './styles/index.scss';
 import Renderer from './renderer';
 import { canvas, gl } from './context';
 
-import { renderRoom } from './scenes/room';
 import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
 import { loadWater, renderWater } from './scenes/water';
 import { renderCloudsWithContext } from './scenes/cloud';
@@ -15,10 +14,9 @@ setupSkyTexture(renderer.sceneContext);
 renderer.addRenderStep(renderSkyTexture);
 
 renderer.addRenderStep(renderCloudsWithContext);
-renderer.addRenderStep(renderRoom);
-loadBirdbath().then(() => {
+Promise.all([loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderBirdbath);
-  loadWater().then(() => renderer.addRenderStep(renderWater));
+  renderer.addRenderStep(renderWater);
 });
 renderer.start();
 
