@@ -14,7 +14,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        sky: resolve(__dirname, 'sky.html'),
         waves: resolve(__dirname, 'waves.html'),
       },
     },
