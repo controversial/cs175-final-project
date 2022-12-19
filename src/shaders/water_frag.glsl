@@ -12,17 +12,12 @@ float sun_intensity = 1.0;
 
 #include "cloud_functions.glsl"
 
-in float should_draw;
 in vec3 v_position;
 in vec3 v_normal;
 
 out vec4 outColor;
 
 void main() {
-  if (should_draw > 0.0) {
-    discard;
-  }
-
   vec3 ray_origin = v_position;
   vec3 ray_direction = normalize(reflect(v_position - eye_position, vec3(0.0, 1.0, 0.0)));
 

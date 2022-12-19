@@ -5,6 +5,7 @@ import { WebIO } from '@gltf-transform/core';
 import { gl } from '../context';
 import type { SceneContext } from '../renderer';
 import { worleyTexture as cloudNoiseTexture } from './worley';
+import { mat4 } from 'gl-matrix';
 
 const program = makeProgram(gl, waterVSS, waterFSS) as WebGLProgram;
 
@@ -18,10 +19,14 @@ const aNormal = gl.getAttribLocation(program, 'a_normal');
 
 // uniform locations
 const uTime = gl.getUniformLocation(program, 'time');
+const uModelMatrix = gl.getUniformLocation(program, 'model_matrix');
 const uViewMatrix = gl.getUniformLocation(program, 'view_matrix');
 const uProjectionMatrix = gl.getUniformLocation(program, 'projection_matrix');
 const uEyePosition = gl.getUniformLocation(program, 'eye_position');
 const uniformLocationCloudNoiseTexture = gl.getUniformLocation(program, 'cloud_noise_texture');
+
+const modelMatrix = mat4.create();
+mat4.translate(modelMatrix, modelMatrix, [0, 2.9, 0]);
 
 let indexCount: number | undefined;
 let loaded = false;
@@ -29,7 +34,7 @@ let loaded = false;
 async function fetchWater() {
   console.log('loading water');
   const io = new WebIO({ credentials: 'include' });
-  const doc = await io.read('/assets/water.glb');
+  const doc = await io.read('/assets/water-surface.glb');
   console.log('loaded water');
   // Get vertex data
   const mesh = doc.getRoot().listMeshes()[0];
@@ -114,6 +119,7 @@ export function renderWater(ctx: SceneContext) {
   gl.bindTexture(gl.TEXTURE_3D, cloudNoiseTexture);
   gl.uniform1i(uniformLocationCloudNoiseTexture, 0);
 
+  gl.uniformMatrix4fv(uModelMatrix, false, modelMatrix);
   gl.uniformMatrix4fv(uViewMatrix, false, ctx.camera.viewMatrix);
   gl.uniformMatrix4fv(uProjectionMatrix, false, ctx.camera.projectionMatrix);
   gl.uniform1f(uTime, ctx.time);

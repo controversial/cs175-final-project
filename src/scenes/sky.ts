@@ -203,7 +203,7 @@ export function RenderSky(camera: Camera, dirToSun: vec3) {
 }
 
 export function RenderSkyWithContext(ctx: SceneContext) {
-  const zenithAngle = ((ctx.time / 1000.0) % 3.5) - 1.5707;
+  const zenithAngle = ((ctx.time / 1000.0 * 0 + 0.5) % 3.5) - 1.5707;
   const azimuthAngle = 2.9;
   const mySunDirection = vec3.fromValues(
     Math.cos(azimuthAngle) * Math.sin(zenithAngle),
