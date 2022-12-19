@@ -12,4 +12,5 @@ void main() {
     );
     view_ray = (model_from_view * vec4(rotate_90_x * (view_from_clip * vertex).xyz, 0.0)).xyz;
     gl_Position = vertex;
+    view_ray = (model_from_view * vec4((view_from_clip * vertex).xyz, 0)).xyz;
 }
