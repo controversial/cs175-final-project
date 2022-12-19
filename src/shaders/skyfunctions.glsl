@@ -1,4 +1,5 @@
 // intended to be #included in other shader files
+// adapted from https://ebruneton.github.io/precomputed_atmospheric_scattering/
 
 uniform sampler2D transmittance_texture;
 uniform sampler3D scattering_texture;
