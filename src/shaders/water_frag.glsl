@@ -22,12 +22,17 @@ in vec3 v_tangent;
 in vec3 v_bitangent;
 in vec2 v_uv;
 
-
 out vec4 outColor;
 
 float linearFog2(float dist)
 {
   return clamp((90.0 - dist) / (90.0 - 50.0), 0.0, 1.0);
+}
+
+float GetFresnel(vec3 cameraPos, vec3 position, vec3 normal) {
+  float cosTheta = dot(normal, normalize(cameraPos - position));
+  float f = 0.02;
+  return f + (1.0 - f) * pow(1.0 - cosTheta, 5.0);
 }
 
 void main() {
@@ -39,15 +44,20 @@ void main() {
   //mat3 inv_tbn = inverse(tbn);
 
   //vec3 normal = texture(u_waterNormal, v_uv).xyz;
+  vec3 view_ray = normalize(v_position - eye_position);
+  vec3 halfway_vec = normalize(sun_direction - view_ray);  
+
 
   vec3 ray_origin = v_position;
-  vec3 ray_direction = normalize(reflect(v_position - eye_position, normal));
+  vec3 ray_direction = normalize(reflect(view_ray, normal));
 
   vec3 sky_color = SkyGetBackgroundSkyColor(eye_position, ray_direction, sun_direction);
-  sky_color = CorrectGamma(sky_color).rgb;
+  sky_color = CorrectGamma(sky_color, 8.0).rgb;
 
   float fog = linearFog2(length(eye_position - v_position));
   vec3 color = marchClouds(sky_color, v_position, ray_direction, 0.1);
 
-  outColor = vec4(color, 0.4 * fog);
+  float fresnel = GetFresnel(eye_position, v_position, normal);
+
+  outColor = vec4(color, fog * clamp(fresnel * 1.6, 0.4, 1.0));
 }

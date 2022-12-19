@@ -22,7 +22,7 @@ const float kSphereRadius = 1000.0 / kLengthUnitInMeters;
 const vec3 kSphereAlbedo = vec3(0.8);
 const vec3 kGroundAlbedo = vec3(0.0, 0.0, 0.04);
 
-const float kSunAngularRadius = 0.00935 / 2.0;
+const float kSunAngularRadius = 0.01935 / 2.0;
 const float exposure = 10.0;
 const vec3 white_point= vec3(1);
 const vec3 earth_center = vec3(0, 0, -6360000.0 / kLengthUnitInMeters);
@@ -90,7 +90,7 @@ struct AtmosphereParameters {
 };
 
 const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(
-    vec3(1.474000,1.850400,1.911980),
+    vec3(1.574000,1.750400,1.911980),
     0.004675,
     6360.000000,
     6420.000000,
