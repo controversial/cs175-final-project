@@ -1,7 +1,7 @@
 import './styles/index.scss';
 
 import Camera from './camera';
-import type { vec3 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 
 
 export interface SceneContext {
@@ -11,8 +11,14 @@ export interface SceneContext {
   size: [number, number],
   time: number,
 
-  sunDirection?: vec3;
-  sunIntensity?: number;
+  zenithAngle: number;
+  azimuthAngle: number;
+
+  get sunDirection(): vec3;
+  get sunIntensity(): number;
+
+  sunDirection: vec3;
+  sunIntensity: number;
 }
 
 export type RenderStep =
@@ -35,9 +41,15 @@ export default class Renderer {
   startTime?: DOMHighResTimeStamp;
   eventListeners: EventListenersRecord = {};
 
+  private sunParameters = {
+    zenithAngle: -1,
+    azimuthAngle: 2.9,
+  };
+
   // Rendering is split into “steps”
   beforeFrameSteps: RenderStep[] = [];
   renderSteps: RenderStep[] = [];
+
 
   constructor(canvas: HTMLCanvasElement, gl: WebGL2RenderingContext) {
     this.canvas = canvas;
@@ -66,12 +78,31 @@ export default class Renderer {
    * steps
    */
   get sceneContext(): SceneContext {
+    const { sunParameters } = this;
     return {
       canvas: this.canvas,
       gl: this.gl,
       camera: this.camera,
       size: [this.width, this.height],
       time: this.startTime ? (performance.now() - this.startTime) : -1,
+
+      get zenithAngle() { return sunParameters.zenithAngle; },
+      set zenithAngle(value) { sunParameters.zenithAngle = value; },
+      get azimuthAngle() { return sunParameters.azimuthAngle; },
+      set azimuthAngle(value) { sunParameters.azimuthAngle = value; },
+
+      get sunDirection() {
+        return vec3.fromValues(
+          -Math.sin(this.azimuthAngle) * Math.sin(this.zenithAngle),
+          Math.cos(this.zenithAngle),
+          Math.cos(this.azimuthAngle) * Math.sin(this.zenithAngle),
+        );
+      },
+      get sunIntensity() {
+        return this.zenithAngle > 1.5707
+          ? 0.0
+          : Math.pow(Math.cos(this.zenithAngle * 2.0) + 1.0, 0.1);
+      },
     };
   }
 

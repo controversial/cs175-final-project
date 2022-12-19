@@ -1,6 +1,6 @@
 import './styles/index.scss';
 
-import Renderer from './renderer';
+import Renderer, { SceneContext } from './renderer';
 import { canvas, gl } from './context';
 
 import { loadBirdbath, renderBirdbath } from './scenes/birdbath';
@@ -14,7 +14,7 @@ const renderer = new Renderer(canvas, gl);
 
 setupWorleyTexture(64);
 
-renderer.addRenderStep(updateSunParameters);
+renderer.addRenderStep((ctx: SceneContext) => updateSunParameters(ctx));
 renderer.addRenderStep(renderCloudsWithContext);
 Promise.all([loadGround(), loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(renderGround);
