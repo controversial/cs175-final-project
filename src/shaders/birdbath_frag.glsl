@@ -33,5 +33,5 @@ void main() {
 
   vec3 sun_color = mix(vec3(.96, .55, .15), vec3(1.0, 1.0, 1.0), u_sunIntensity) * u_sunIntensity;
 
-  outColor = vec4(base_color * diffuse * sun_color, 1.0);
+  outColor = vec4(pow(base_color, vec3(1.0 / 1.5)) * diffuse * sun_color, 1.0);
 }
