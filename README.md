@@ -1,5 +1,8 @@
 # Tufts CS175 Computer Graphics: Final Project
-Written by Luke, Christian and Jacob
+Written by Luke, Christian and Jacob.
+
+## Live demo
+[Link](https://cs175-final.vercel.app)
 
 ## Description
 This project is a WebGL application that renders a scene with volumetric clouds, a realistic atmosphere, and interactive water in real-time. The project was an attempt to explore the techniques and compromises required to render realistic scenes in real-time.
