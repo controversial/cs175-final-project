@@ -7,6 +7,26 @@
   </head>
   <body>
     <canvas id="canvas"></canvas>
+    <div id="controls">
+      <div>Controls&nbsp;<span>X</span></div>
+      <ul class="show">
+        <li>W-A-S-D to move laterally</li>
+        <li>Q-E to move up & down</li>
+        <li>I-J-K-L to turn</li>
+        <li>Hold shift to move faster</li>
+        <li>0 to return home</li>
+        <li>Click water to splash</li>
+        <li>Check out the view from space!</li>
+      </ul>
+    </div>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+      let controlsCloseButton = document.querySelector("#controls span");
+      let controlsList = document.querySelector("#controls ul");
+
+      controlsCloseButton.addEventListener("click", () =>
+        controlsList.classList.toggle("show")
+      );
+    </script>
   </body>
 </html>
