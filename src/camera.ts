@@ -140,12 +140,10 @@ export default class Camera {
         Camera.moveSpeed = Camera.slowMoveSpeed;
       }
 
-      if (keysDown.has('0')) {
-        this.eyePosition = vec3.fromValues(this.initialEyePosition[0], this.initialEyePosition[1], this.initialEyePosition[2]);
-      }
+
 
       // Forward/back movement
-      if (keysDown.has('w')) forwardBackVelocity = lerp(forwardBackVelocity, Camera.moveSpeed, effectiveMovementAlpha);
+      if (keysDown.has('w') || keysDown.has('left')) forwardBackVelocity = lerp(forwardBackVelocity, Camera.moveSpeed, effectiveMovementAlpha);
       else if (keysDown.has('s')) forwardBackVelocity = lerp(forwardBackVelocity, -Camera.moveSpeed, effectiveMovementAlpha);
       else forwardBackVelocity = lerp(forwardBackVelocity, 0, effectiveMovementAlpha);
       // Left/right movement
@@ -157,11 +155,11 @@ export default class Camera {
       else if (keysDown.has('e')) upDownVelocity = lerp(upDownVelocity, -Camera.moveSpeed, effectiveMovementAlpha);
       else upDownVelocity = lerp(upDownVelocity, 0, effectiveMovementAlpha);
       // Rotation
-      if (keysDown.has('i')) upDownAngularVelocity = lerp(upDownAngularVelocity, Camera.rotateSpeed, effectiveRotationAlpha);
-      else if (keysDown.has('k')) upDownAngularVelocity = lerp(upDownAngularVelocity, -Camera.rotateSpeed, effectiveRotationAlpha);
+      if (keysDown.has('i') || keysDown.has('arrowup')) upDownAngularVelocity = lerp(upDownAngularVelocity, Camera.rotateSpeed, effectiveRotationAlpha);
+      else if (keysDown.has('k') || keysDown.has('arrowdown')) upDownAngularVelocity = lerp(upDownAngularVelocity, -Camera.rotateSpeed, effectiveRotationAlpha);
       else upDownAngularVelocity = lerp(upDownAngularVelocity, 0, effectiveRotationAlpha);
-      if (keysDown.has('j')) leftRightAngularVelocity = lerp(leftRightAngularVelocity, Camera.rotateSpeed, effectiveRotationAlpha);
-      else if (keysDown.has('l')) leftRightAngularVelocity = lerp(leftRightAngularVelocity, -Camera.rotateSpeed, effectiveRotationAlpha);
+      if (keysDown.has('j') || keysDown.has('arrowleft')) leftRightAngularVelocity = lerp(leftRightAngularVelocity, Camera.rotateSpeed, effectiveRotationAlpha);
+      else if (keysDown.has('l') || keysDown.has('arrowright')) leftRightAngularVelocity = lerp(leftRightAngularVelocity, -Camera.rotateSpeed, effectiveRotationAlpha);
       else leftRightAngularVelocity = lerp(leftRightAngularVelocity, 0, effectiveRotationAlpha);
       // Apply velocities
       this.velocity[0] = leftRightVelocity;

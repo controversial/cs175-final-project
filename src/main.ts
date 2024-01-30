@@ -21,6 +21,8 @@ Promise.all([loadGround(), loadBirdbath(), loadWater()]).then(() => {
   renderer.addRenderStep(updateWaves, true);
   renderer.addRenderStep(renderWater);
   renderer.addEventListener('click', waterHandleClick);
+  const loadingScreen = document.getElementById('loading');
+  if (loadingScreen) loadingScreen.remove();
 });
 
 renderer.addEventListener('wheel', (ctx, e) => {
