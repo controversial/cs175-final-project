@@ -113,8 +113,15 @@ export default class Camera {
       keysDown.add(e.key.toLowerCase());
       if (e.shiftKey) keysDown.add('SHIFT');
       else keysDown.delete('SHIFT');
+      // prevent propagation through iframes
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code) > -1) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
-    const onKeyUp = (e: KeyboardEvent) => { keysDown.delete(e.key.toLowerCase()); };
+    const onKeyUp = (e: KeyboardEvent) => {
+      keysDown.delete(e.key.toLowerCase());
+    };
     addEventListener('keydown', onKeyDown);
     addEventListener('keyup', onKeyUp);
     let leftRightVelocity = 0;
